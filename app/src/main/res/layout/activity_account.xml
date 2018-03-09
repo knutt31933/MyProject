@@ -18,14 +18,14 @@
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"
-        android:layout_width="200dp"
+        android:layout_width="220dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:background="#134a61"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_account"
-        app:menu="@menu/activity_account_drawer"
-        android:background="#FF61A3CA"
         app:itemIconTint="#FFFF"
-        app:itemTextColor="#FFFF"/>
+        app:itemTextColor="#FFFF"
+        app:menu="@menu/activity_account_drawer" />
 
 </android.support.v4.widget.DrawerLayout>

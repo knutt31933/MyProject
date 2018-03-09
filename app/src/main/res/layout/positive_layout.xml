@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bgfacebook"
+    >
+
+
+    <ImageView
+        android:id="@+id/imageviewpositive"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="66dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.135"
+        app:srcCompat="@drawable/green" />
+
+    <TextView
+        android:id="@+id/textpositiveatti"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/imageviewpositive"
+        android:layout_marginLeft="12dp"
+        android:layout_marginStart="12dp"
+        android:text="TextView"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.102"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textpositiveemo"
+        android:layout_alignLeft="@+id/textpositiveatti"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/textpositiveatti"
+        android:layout_below="@+id/textpositiveatti"
+        android:layout_marginTop="23dp"
+        android:text="TextView"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.102"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.585" />
+
+    <Button
+        android:id="@+id/no_btn"
+        android:layout_toLeftOf="@+id/btnpostsitive"
+        android:layout_toStartOf="@+id/btnpostsitive"
+
+        android:layout_width="100dp"
+        android:layout_height="70dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="58dp"
+        android:background="@drawable/redbutton"
+        android:text="No"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.107"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.944"
+        tools:ignore="UnknownId" />
+
+    <Button
+        android:id="@+id/post_btn"
+        android:layout_width="100dp"
+        android:layout_height="75dp"
+        android:layout_alignBottom="@+id/no_btn"
+        android:layout_toEndOf="@+id/btnpostsitive"
+        android:layout_toRightOf="@+id/btnpostsitive"
+        android:background="@drawable/postbutton"
+        android:text="POST"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.917"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.944" />
+
+    <Button
+        android:id="@+id/btnpostsitive"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/no_btn"
+        android:layout_alignBottom="@+id/no_btn"
+        android:layout_centerHorizontal="true"
+        android:text="check" />
+</RelativeLayout>

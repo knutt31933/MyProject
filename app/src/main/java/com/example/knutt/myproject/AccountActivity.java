@@ -1,9 +1,18 @@
 package com.example.knutt.myproject;
 
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
+import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,16 +22,40 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.LoggingBehavior;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginManager;
 import com.facebook.login.widget.ProfilePictureView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.BreakIterator;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AccountActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -31,6 +64,36 @@ public class AccountActivity extends AppCompatActivity
     private ProfilePictureView profilePictureView;
     private TextView textname,textemail;
     private JSONObject reponse;
+    private Button btnpost,btnemo;
+    private EditText editTextpost;
+    private GridLayout gridLayout;
+    private ImageView emo1,emo2,emo3,emo4,emo5,emo6,emo7,emo8,emo9,emo10,emo11,emo12,emo13,emo14,emo15,emo16,emo17,emo18,emo19,emo20,emo21;
+    private Database db;
+    private Database2 db2;
+    private Database3 db3;
+
+
+
+
+
+    ArrayList<String> strword = new ArrayList<>() ;
+    HashSet<String> emo = new HashSet<>();
+    private ArrayList<String> listemo = new ArrayList<>();
+    private HashSet<String> listforemo = new HashSet<>();
+    private HashSet<String> listforword = new HashSet<>();
+    private HashSet<String> testword = new HashSet<>();
+    private HashSet<String> testshortcut = new HashSet<>();
+    private Map<String,Integer> mappingEmo = new HashMap<>();
+    private ArrayList<String> arrMapping = new ArrayList<>();
+    private ArrayList<String> arrFrequency = new ArrayList<>();
+
+
+    /////check
+    private DatabaseRealtime databaseRealtime;
+    private ArrayList<String> arrListWordcheck = new ArrayList<>();
+    private ArrayList<String> arrListEmocheck = new ArrayList<>();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +105,722 @@ public class AccountActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FacebookSdk.addLoggingBehavior(LoggingBehavior.REQUESTS);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        btnpost = (Button)findViewById(R.id.btnpost);
+        editTextpost =(EditText)findViewById(R.id.edittextpost);
+        gridLayout = (GridLayout)findViewById(R.id.gridview);
+        btnemo = (Button)findViewById(R.id.emoticonbtn);
+        emo1  = (ImageView)findViewById(R.id.emo1);
+        emo2  = (ImageView)findViewById(R.id.emo2);
+        emo3  = (ImageView)findViewById(R.id.emo3);
+        emo4  = (ImageView)findViewById(R.id.emo4);
+        emo5  = (ImageView)findViewById(R.id.emo5);
+        emo6  = (ImageView)findViewById(R.id.emo6);
+        emo7  = (ImageView)findViewById(R.id.emo7);
+        emo8  = (ImageView)findViewById(R.id.emo8);
+        emo9  = (ImageView)findViewById(R.id.emo9);
+        emo10  = (ImageView)findViewById(R.id.emo10);
+        emo11 = (ImageView)findViewById(R.id.emo11);
+        emo12  = (ImageView)findViewById(R.id.emo12);
+        emo13  = (ImageView)findViewById(R.id.emo13);
+        emo14  = (ImageView)findViewById(R.id.emo14);
+        emo15  = (ImageView)findViewById(R.id.emo15);
+        emo16  = (ImageView)findViewById(R.id.emo16);
+        emo17  = (ImageView)findViewById(R.id.emo17);
+        emo18  = (ImageView)findViewById(R.id.emo18);
+        emo19  = (ImageView)findViewById(R.id.emo19);
+        emo20  = (ImageView)findViewById(R.id.emo20);
+        emo21  = (ImageView)findViewById(R.id.emo21);
 
-        final Intent intent = getIntent();
-        String jsondata = intent.getStringExtra("userProfile");
+
+
+        db= new Database(getApplicationContext());
+        db.getWritableDatabase();
+        db2 = new Database2(getApplicationContext());
+        db2.getWritableDatabase();
+        db3=new Database3(getApplicationContext());
+        db3.getWritableDatabase();
+        databaseRealtime = new DatabaseRealtime(getApplicationContext());
+        databaseRealtime.getWritableDatabase();
+
+
+        final ArrayList<HashMap<String, String>> datetimeforcheck = databaseRealtime.getDaterealtime();
+        Calendar checkfirst = Calendar.getInstance();
+        checkfirst.add(Calendar.DATE,0);
+        SimpleDateFormat cfirst = new SimpleDateFormat("yyyy-MM-dd");
+        String dateforfirst = cfirst.format(checkfirst.getTime());
+        int forcheck = 0;
+        for(int i = 0;i<datetimeforcheck.size();i++){
+            String key = datetimeforcheck.get(i).get("Date");
+            if(key.contains(dateforfirst)){
+               forcheck++;
+            }
+
+        }
+        String key = datetimeforcheck.get(7).get("Date");
+        if(forcheck==0 || dateforfirst.contains(key)){
+
+            Calendar c = Calendar.getInstance();
+            Calendar c2 = Calendar.getInstance();
+            Calendar c3 = Calendar.getInstance();
+            Calendar c4 = Calendar.getInstance();
+            Calendar c5 = Calendar.getInstance();
+            Calendar c6 = Calendar.getInstance();
+            Calendar c7 = Calendar.getInstance();
+            Calendar c8 = Calendar.getInstance();
+
+            c.add(Calendar.DATE,0);
+            c2.add(Calendar.DATE,+1);
+            c3.add(Calendar.DATE,+2);
+            c4.add(Calendar.DATE,+3);
+            c5.add(Calendar.DATE,+4);
+            c6.add(Calendar.DATE,+5);
+            c7.add(Calendar.DATE,+6);
+            c8.add(Calendar.DATE,+7);
+
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df3 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df4 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df5 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df6 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df7 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat df8 = new SimpleDateFormat("yyyy-MM-dd");
+
+            String formattedDate = df.format(c.getTime());
+            String formattedDate2 = df2.format(c2.getTime());
+            String formattedDate3 = df3.format(c3.getTime());
+            String formattedDate4 = df4.format(c4.getTime());
+            String formattedDate5 = df5.format(c5.getTime());
+            String formattedDate6 = df6.format(c6.getTime());
+            String formattedDate7 = df7.format(c7.getTime());
+            String formattedDate8 = df8.format(c8.getTime());
+
+            boolean Date1 = databaseRealtime.updateData("1",formattedDate);
+            boolean Date2 = databaseRealtime.updateData("2",formattedDate2);
+            boolean Date3 = databaseRealtime.updateData("3",formattedDate3);
+            boolean Date4 = databaseRealtime.updateData("4",formattedDate4);
+            boolean Date5 = databaseRealtime.updateData("5",formattedDate5);
+            boolean Date6 = databaseRealtime.updateData("6",formattedDate6);
+            boolean Date7 = databaseRealtime.updateData("7",formattedDate7);
+            boolean Date8 = databaseRealtime.updateData("8",formattedDate8);
+
+            final String datecheck11 = datetimeforcheck.get(0).get("Date");
+            final String datecheck22 = datetimeforcheck.get(1).get("Date");
+            final String datecheck33 = datetimeforcheck.get(2).get("Date");
+            final String datecheck44 = datetimeforcheck.get(3).get("Date");
+            final String datecheck55 = datetimeforcheck.get(4).get("Date");
+            final String datecheck66 = datetimeforcheck.get(5).get("Date");
+            final String datecheck77 = datetimeforcheck.get(6).get("Date");
+            final String datecheck88 = datetimeforcheck.get(7).get("Date");
+
+        }
+
+
+
+
+
+
+        btnpost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getPostAndCheckWord();
+            }
+        });
+
+        gridLayout.setVisibility(View.GONE);
+        btnemo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(gridLayout.getVisibility() == View.GONE){
+                    gridLayout.setVisibility(View.VISIBLE);
+                    emo1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "^_^");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+                        }
+                    });
+                    emo2.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "8-|");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+                        }
+                    });
+
+                    emo3.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":-P");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo4.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":-O");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+                    emo5.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":-D");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+                    emo6.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "O:)");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo7.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "3:)");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+                        }
+                    });
+
+                    emo8.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ";-)");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo9.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "-_-");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+                        }
+                    });
+                    emo10.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":/");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+                        }
+                    });
+
+                    emo11.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":-*");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo12.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ">:(");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+                    emo13.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ">:O");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo14.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":'(");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo15.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "o.O");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo16.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":-(");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo17.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":-)");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo18.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "8-)");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+                        }
+                    });
+
+                    emo19.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, "<3");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo20.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":3");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                    emo21.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            int EditTextCursor;
+
+                            SpannableStringBuilder spannableStringBuilder ;
+
+
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            editTextpost.getText().insert(EditTextCursor, ":V");
+
+                            EditTextCursor = editTextpost.getSelectionStart();
+
+                            spannableStringBuilder = new SpannableStringBuilder(editTextpost.getText());
+
+
+                            editTextpost.setText(spannableStringBuilder);
+
+                            editTextpost.setSelection(EditTextCursor);
+
+                            //editTextPost.setText("^_^");
+                            gridLayout.setVisibility(View.GONE);
+
+                        }
+                    });
+
+                }else{
+                    gridLayout.setVisibility(View.GONE);
+                }
+            }
+        });
+
+
+
 
 
 
@@ -57,31 +833,4438 @@ public class AccountActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-//        View header = navigationView.findViewById(R.id.header);
-//
-//        profilePictureView = (ProfilePictureView)navigationView.findViewById(R.id.imageView);
-//        textname = (TextView)navigationView.findViewById(R.id.textname);
-//        textemail = (TextView)navigationView.findViewById(R.id.textemail);
-//
-//
-//        try {
-//
-//            reponse = new JSONObject(jsondata);
-//            String fname = reponse.get("first_name").toString();
-//            String lname = reponse.get("last_name").toString();
-//            String fullname = fname + " " +lname;
-//            //String bh = reponse.get("birthday").toString();
-//            textname.setText(fullname);
-//            textemail.setText(reponse.get("email").toString());
-//            profilePictureView.setProfileId(reponse.get("id").toString());
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
+
+
+
+
+
+
 
 
 
 
     }
+    public void getPostAndCheckWord(){
+
+
+            final ArrayList<HashMap<String, String>> attitude = db.getAttitudeList();
+            final ArrayList<HashMap<String, String>> emotion = db.getEmotionList();
+            final ArrayList<HashMap<String, String>> emoshortcut = db.getEmoticon();
+            final ArrayList<HashMap<String, String>> attitude2 = db2.getAttitudeList2();
+            final ArrayList<HashMap<String, String>> attitude3 = db3.getAttitudeList3();
+
+            final String pattern2 = "([a-zA-Z0-9!@#$&()-`|.+',/\"]{2})";
+            final String pattern3 = "([a-zA-Z0-9!@#$&()-`|.+',/\"]{3})";
+            final String pattern4 = "([a-zA-Z0-9!@#$&()-`|.+',/\"]{4})";
+            final String pattern5 = "([0-8]{1})";
+
+           final Pattern regex2 = Pattern.compile(pattern2);
+           final Pattern regex3 = Pattern.compile(pattern3);
+           final Pattern regex4 = Pattern.compile(pattern4);
+           Pattern regex5 = Pattern.compile(pattern5);
+
+
+            final String message = editTextpost.getText().toString().trim();
+
+
+
+
+
+            if (message.length() == 0) {
+                Toast.makeText(AccountActivity.this,"Please enter a message.", Toast.LENGTH_LONG).show();
+            } else {
+
+                SharedPreferences sp6 = getSharedPreferences("App save6", Context.MODE_PRIVATE);
+                int checkboxstate6 = sp6.getInt("checked6",1);
+
+                //clear all collection
+                strword.clear();
+                emo.clear();
+                listemo.clear();
+                listforword.clear();
+                listforemo.clear();
+                testword.clear();
+                testshortcut.clear();
+                mappingEmo.clear();
+                arrMapping.clear();
+
+
+                int countnumemo = 0;
+                int countchexkemo = 0;
+                int checkshortcut = 0;
+
+                //emoticon check word
+                Matcher m2 = regex2.matcher(message);
+                Matcher m3 = regex3.matcher(message);
+                Matcher m4 = regex4.matcher(message);
+                Matcher m5 ;
+
+                while (m2.find()){
+                    listemo.add(m2.group(0));
+                    countnumemo++;
+                }
+                while (m3.find()){
+                    listemo.add(m3.group(0));
+                    countnumemo++;
+                }
+                while (m4.find()){
+                    listemo.add(m4.group(0));
+                    countnumemo++;
+                }
+
+                //emoticon check word end!!
+
+                //check word by regular expression
+
+//                for(int i = 0;i<attitude.size();i++){
+//                    String checkwordbyregular = attitude.get(i).get("AttitudeWord");
+//                    Pattern regexcheck = Pattern.compile(checkwordbyregular);
+//                    Matcher mcheck = regexcheck.matcher(message);
+//                    while (mcheck.find()){
+//                        //add in list
+//                        //strword.add(mcheck.group(0));
+//                    }
+//                }
+//
+//                for(int i = 0;i<attitude2.size();i++){
+//                    String checkwordbyregular = attitude2.get(i).get("AttitudeWord");
+//                    Pattern regexcheck = Pattern.compile(checkwordbyregular);
+//                    Matcher mcheck = regexcheck.matcher(message);
+//                    while (mcheck.find()){
+//                        //add in list
+//                        //strword.add(mcheck.group(0));
+//                    }
+//                }
+//
+//                for(int i = 0;i<attitude3.size();i++){
+//                    String checkwordbyregular = attitude3.get(i).get("AttitudeWord");
+//                    Pattern regexcheck = Pattern.compile(checkwordbyregular);
+//                    Matcher mcheck = regexcheck.matcher(message);
+//                    while (mcheck.find()){
+//                        //add in list
+//                       // strword.add(mcheck.group(0));
+//                    }
+//                }
+
+
+                //check word by regular expression end!!
+
+
+
+
+
+                Locale thaiLocale = new Locale("th");
+
+
+                BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+
+//BreakIterator boundary = DictionaryBasedBreakIterator.getWordInstance(thaiLocale);
+
+                boundary.setText(message);
+
+                String keepword = "";
+                String keepemo = "";
+
+
+
+                int start = boundary.first();
+                for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                    strword.add(message.substring(start, end));
+
+
+                    //Toast.makeText(MainActivity.this,input.substring(start, end) + " ",Toast.LENGTH_SHORT).show();
+
+                }
+
+
+
+
+                int count = 0;
+                int checkemo = 0;
+
+                //เช็คค่าทัศนคติ emoshortcut
+                for (String s : listemo) {
+                    String keepingword = "";
+
+                    for(int i=0;i<emoshortcut.size();i++){
+                        testshortcut.add(emoshortcut.get(i).get("EmoticonShortcut"));
+                    }
+                    if(testshortcut.contains(s)){
+                        keepemo = keepemo + s;
+                    }
+
+
+                    for(int i=0;i<emoshortcut.size();i++){
+                        if(s.equals(emoshortcut.get(i).get("EmoticonShortcut"))){
+                            String rank = emoshortcut.get(i).get("EmoticonRank");
+                            int countrank = Integer.parseInt(rank);
+                            listforemo.add(emoshortcut.get(i).get("EmoticonShortcut"));
+                            //int shcemo = Integer.parseInt(emoshortcut.get(i).get("EmoticonEmoid"));
+                            m5 = regex5.matcher(emoshortcut.get(i).get("EmoticonEmoid"));
+                            while (m5.find()){
+                                int shcemo = Integer.parseInt(m5.group(0));
+                                String emotionword = emotion.get(shcemo).get("EmotionWord");
+                                keepingword = keepingword + emotionword + " ";
+                                if(mappingEmo.get(emotionword) == null){
+                                    mappingEmo.put(emotionword,1);
+                                }else{
+                                    int countmapping = mappingEmo.get(emotionword);
+                                    countmapping++;
+                                    mappingEmo.put(emotionword,countmapping);
+
+                                }
+                                emo.add(emotionword);
+                            }
+
+
+
+                            keepemo = " "+keepemo+ " ="+rank+","+keepingword+"|";//check
+
+                            countchexkemo = countchexkemo + countrank;
+                            checkshortcut++;
+
+
+                        }
+                    }
+
+                }
+                Toast.makeText(AccountActivity.this,String.valueOf(strword.size()),Toast.LENGTH_LONG).show();
+                for(String s:strword){
+                    Toast.makeText(AccountActivity.this,s,Toast.LENGTH_LONG).show();
+
+                }
+
+
+                final String checksc;
+
+                if(countchexkemo>0&& checkshortcut >0) {
+                    checksc = "ค่าทัศนคติemoticon : " + keepemo + " ==> " + String.valueOf(countchexkemo); //check
+                }else if(countchexkemo<0&& checkshortcut >0){
+                    checksc = "ค่าทัศนคติemoticon : " + keepemo + " ==> " + String.valueOf(countchexkemo); //check
+                }else if(countchexkemo == 0 && checkshortcut >0){
+                    checksc = "ค่าทัศนคติemoticon : " + keepemo + " ==> " + String.valueOf(countchexkemo); //check
+                }else{
+                    checksc = "ค่าทัศนคติemoticon : " + keepemo + " ==> null"; //check
+                }
+                //เช็คคำทัศนคติ word
+                for (int i = 0; i < strword.size(); i++) {
+                    int icount = i+1;
+                    String str2 = "";
+                    String str3 = "";
+
+                    if(icount <= strword.size()-1){
+                        str2 = strword.get(icount);
+                        for(int h = icount;h<=strword.size()-1;h++){
+                            if(str2.contains(" ")){
+                                str2 = strword.get(h);
+                            }else{
+                                break;
+                            }
+                        }
+
+
+                    }
+
+                    String str = strword.get(i);
+
+                    String keepingword = "";
+
+                    for (int j = 0; j < attitude.size(); j++) {
+
+                            testword.add(attitude.get(j).get("AttitudeWord"));
+
+                    }
+                    for (int j = 0; j < attitude2.size(); j++) {
+
+                        testword.add(attitude2.get(j).get("AttitudeWord"));
+
+                    }
+
+                    for (int j = 0; j < attitude3.size(); j++) {
+
+                        testword.add(attitude3.get(j).get("AttitudeWord"));
+
+                    }
+
+
+                    if(testword.contains(str)){
+                        keepword = keepword + str;
+                    }else{
+                        keepword = keepword + str+"|";
+                    }
+                    int counttarget = 0;
+
+                    if(str.contains("ๆ")){
+                       for(int a = 0;a<attitude.size();a++){
+                            String checkwordbyregular = attitude.get(a).get("AttitudeWord");
+                            Pattern regexcheck = Pattern.compile(checkwordbyregular);
+                            Matcher mcheck = regexcheck.matcher(str);
+                            if(mcheck.find()){
+                                str = mcheck.group(0);
+                                if(str2.contains("ๆ")) {
+
+                                    for (int b = 0; b < attitude.size(); b++) {
+                                        String checkwordbyregular2 = attitude.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    for (int b = 0; b < attitude2.size(); b++) {
+                                        String checkwordbyregular2 = attitude2.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    for (int b = 0; b < attitude3.size(); b++) {
+                                        String checkwordbyregular2 = attitude3.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    if((str2.contains("ๆ"))&&(counttarget != 1)){
+                                        str3 = str+"ๆ"+str2;
+
+                                    }
+
+                                }
+                                str3 = str+"ๆ";
+                            }
+
+                        }
+
+                        for(int a = 0;a<attitude2.size();a++){
+                            String checkwordbyregular = attitude2.get(a).get("AttitudeWord");
+                            Pattern regexcheck = Pattern.compile(checkwordbyregular);
+                            Matcher mcheck = regexcheck.matcher(str);
+                            if(mcheck.find()){
+                                str = mcheck.group(0);
+                                if(str2.contains("ๆ")) {
+
+                                    for (int b = 0; b < attitude.size(); b++) {
+                                        String checkwordbyregular2 = attitude.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    for (int b = 0; b < attitude2.size(); b++) {
+                                        String checkwordbyregular2 = attitude2.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    for (int b = 0; b < attitude3.size(); b++) {
+                                        String checkwordbyregular2 = attitude3.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    if((str2.contains("ๆ"))&&(counttarget != 1)){
+                                        str3 = str+"ๆ"+str2;
+
+                                    }
+                                }
+                                str3 = str+"ๆ";
+                            }
+                        }
+
+                        for(int a = 0;a<attitude3.size();a++){
+                            String checkwordbyregular = attitude3.get(a).get("AttitudeWord");
+                            Pattern regexcheck = Pattern.compile(checkwordbyregular);
+                            Matcher mcheck = regexcheck.matcher(str);
+                            if(mcheck.find()){
+                                str = mcheck.group(0);
+                                if(str2.contains("ๆ")) {
+
+                                    for (int b = 0; b < attitude.size(); b++) {
+                                        String checkwordbyregular2 = attitude.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    for (int b = 0; b < attitude2.size(); b++) {
+                                        String checkwordbyregular2 = attitude2.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+                                    for (int b = 0; b < attitude3.size(); b++) {
+                                        String checkwordbyregular2 = attitude3.get(b).get("AttitudeWord");
+                                        Pattern regexcheck2 = Pattern.compile(checkwordbyregular2);
+                                        Matcher mcheck2 = regexcheck2.matcher(str2);
+                                        if (mcheck2.find()) {
+                                            counttarget++;
+                                        }
+                                    }
+
+                                    if((str2.contains("ๆ"))&&(counttarget != 1)){
+                                        str3 = str+"ๆ"+str2;
+
+                                    }
+                                }
+                                str3 = str+"ๆ";
+
+                            }
+                        }
+
+
+
+                    }else{
+                        if(str2.contains("ๆ")){
+                            str3 = str2;
+
+                        }
+
+
+
+                    }
+
+
+
+
+
+                    // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                    for (int j = 0; j < attitude.size(); j++) {
+                        if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                            String rank = attitude.get(j).get("AttitudeRank");
+                            int countrank = Integer.parseInt(rank);
+                            m5 = regex5.matcher(attitude.get(j).get("Emotion"));
+                            while (m5.find()){
+                                int attemo = Integer.parseInt(m5.group(0));
+                                String emotionword = emotion.get(attemo).get("EmotionWord");
+                                keepingword = keepingword + emotionword + " ";
+
+                                if(mappingEmo.get(emotionword) == null){
+                                    mappingEmo.put(emotionword,1);
+                                }else{
+                                    int countmapping = mappingEmo.get(emotionword);
+                                    countmapping++;
+                                    mappingEmo.put(emotionword,countmapping);
+
+                                }
+                                emo.add(emotionword);
+                            }
+
+
+                            keepword = " "+keepword+" ="+rank+","+keepingword+"|";//check
+                            count = count + countrank;
+                            checkemo++;
+
+                            String frequen ="([ๆ]{1})";
+                            Pattern regexfre = Pattern.compile(frequen);
+                            Matcher mfre = regexfre.matcher(str3);
+                            while (mfre.find()){
+                                count = count + countrank;
+                            }
+
+
+                        }
+                    }
+
+
+                    for (int j = 0; j < attitude2.size(); j++) {
+                        if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+
+                            String rank = attitude2.get(j).get("AttitudeRank");
+                            int countrank = Integer.parseInt(rank);
+                            m5 = regex5.matcher(attitude2.get(j).get("Emotion"));
+                            while (m5.find()){
+                                int attemo = Integer.parseInt(m5.group(0));
+                                String emotionword = emotion.get(attemo).get("EmotionWord");
+                                keepingword = keepingword + emotionword + " ";
+                                if(mappingEmo.get(emotionword) == null){
+                                    mappingEmo.put(emotionword,1);
+                                }else{
+                                    int countmapping = mappingEmo.get(emotionword);
+                                    countmapping++;
+                                    mappingEmo.put(emotionword,countmapping);
+
+                                }
+                                emo.add(emotionword);
+                            }
+
+
+                            keepword = " "+keepword+" ="+rank+","+keepingword+"|";//check
+                            count = count + countrank;
+                            checkemo++;
+
+                            String frequen ="([ๆ]{1})";
+                            Pattern regexfre = Pattern.compile(frequen);
+                            Matcher mfre = regexfre.matcher(str3);
+                            while (mfre.find()){
+                                count = count + countrank;
+                            }
+
+                            //Toast.makeText(AccountActivity.this,attitude2.get(j).get("AttitudeWord"),Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+
+                    for (int j = 0; j < attitude3.size(); j++) {
+                        if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                            String rank = attitude3.get(j).get("AttitudeRank");
+                            int countrank = Integer.parseInt(rank);
+
+                            m5 = regex5.matcher(attitude3.get(j).get("Emotion"));
+                            while (m5.find()){
+                                int attemo = Integer.parseInt(m5.group(0));
+                                String emotionword = emotion.get(attemo).get("EmotionWord");
+                                keepingword = keepingword + emotionword + " ";
+                                if(mappingEmo.get(emotionword) == null){
+                                    mappingEmo.put(emotionword,1);
+                                }else{
+                                    int countmapping = mappingEmo.get(emotionword);
+                                    countmapping++;
+                                    mappingEmo.put(emotionword,countmapping);
+
+                                }
+                                emo.add(emotionword);
+                            }
+
+
+
+                            keepword = " "+keepword+" ="+rank+","+keepingword+"|";//check
+
+                            count = count + countrank;
+                            checkemo++;
+
+                            String frequen ="([ๆ]{1})";
+                            Pattern regexfre = Pattern.compile(frequen);
+                            Matcher mfre = regexfre.matcher(str3);
+                            while (mfre.find()){
+                                count = count + countrank;
+                            }
+
+
+
+
+                            //Toast.makeText(AccountActivity.this,attitude2.get(j).get("AttitudeWord"),Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+
+
+
+
+
+                }
+                final String checkwd;
+                if(count > 0&&checkemo >0) {
+                    checkwd = "ค่าทัศนคติword : " + keepword + " ==> " + String.valueOf(count);//check
+                }else if(count < 0&&checkemo >0){
+                    checkwd = "ค่าทัศนคติword : " + keepword + " ==> " + String.valueOf(count);//check
+                }else if(count == 0&&checkemo >0){
+                    checkwd = "ค่าทัศนคติword : " + keepword + " ==> " + String.valueOf(count);//check
+                }else{
+                    checkwd = "ค่าทัศนคติword  : " + keepword + " ==> null";//check
+                }
+
+
+//                if(emo.contains("ไม่แสดงอารมณ์")){
+//                    emo.remove("ไม่แสดงอารมณ์");
+//
+//                }
+
+
+
+                if(countchexkemo >0 && checkshortcut >0){
+//                    if(emo.contains("กลัว(Fear)")) {
+//                        emo.remove("กลัว(Fear)");
+//                    }
+                    if(mappingEmo.containsKey("กลัว(Fear))")) {
+                       mappingEmo.remove("กลัว(Fear)");
+                    }
+
+//                    if(emo.contains("รังเกียจ(Disgust)")){
+//                        emo.remove("รังเกียจ(Disgust)");
+//
+//                    }
+                    if(mappingEmo.containsKey("รังเกียจ(Disgust))")) {
+                        mappingEmo.remove("รังเกียจ(Disgust)");
+                    }
+//                    if(emo.contains("โกรธ(Anger)")){
+//                        emo.remove("โกรธ(Anger)");
+//                    }
+                    if(mappingEmo.containsKey("โกรธ(Anger)")) {
+                        mappingEmo.remove("โกรธ(Anger)");
+                    }
+//                    if(emo.contains("เศร้าเสียใจ(Sadness)")){
+//                        emo.remove("เศร้าเสียใจ(Sadness)");
+//                    }
+                    if(mappingEmo.containsKey("เศร้าเสียใจ(Sadness)")) {
+                        mappingEmo.remove("เศร้าเสียใจ(Sadness)");
+                    }
+//                    if(emo.contains("ประหลาดใจ(Surprise)")){
+//                        emo.remove("ประหลาดใจ(Surprise)");
+//                    }
+                    if(mappingEmo.containsKey("ประหลาดใจ(Surprise)")) {
+                        mappingEmo.remove("ประหลาดใจ(Surprise)");
+                    }
+//                    if(emo.contains("คาดหวัง(Anticipation)")){
+//                        emo.remove("คาดหวัง(Anticipation)");
+//                    }
+                    if(mappingEmo.containsKey("คาดหวัง(Anticipation)")) {
+                        mappingEmo.remove("คาดหวัง(Anticipation)");
+                    }
+
+                }else if(countchexkemo == 0 && checkshortcut >0){
+//                    if(emo.contains("กลัว(Fear)")) {
+//                        emo.remove("กลัว(Fear)");
+//                    }
+                    if(mappingEmo.containsKey("กลัว(Fear)")) {
+                        mappingEmo.remove("กลัว(Fear)");
+                    }
+//                    if(emo.contains("รังเกียจ(Disgust)")){
+//                        emo.remove("รังเกียจ(Disgust)");
+//
+//                    }
+                    if(mappingEmo.containsKey("รังเกียจ(Disgust)")) {
+                        mappingEmo.remove("รังเกียจ(Disgust)");
+                    }
+//                    if(emo.contains("โกรธ(Anger)")){
+//                        emo.remove("โกรธ(Anger)");
+//                    }
+                    if(mappingEmo.containsKey("โกรธ(Anger)")) {
+                        mappingEmo.remove("โกรธ(Anger)");
+                    }
+//                    if(emo.contains("เศร้าเสียใจ(Sadness)")){
+//                        emo.remove("เศร้าเสียใจ(Sadness)");
+//                    }
+                    if(mappingEmo.containsKey("เศร้าเสียใจ(Sadness)")) {
+                        mappingEmo.remove("เศร้าเสียใจ(Sadness)");
+                    }
+//                    if(emo.contains("ยอมรับ(Acceptance)")){
+//                        emo.remove("ยอมรับ(Acceptance)");
+//                    }
+                    if(mappingEmo.containsKey("ยอมรับ(Acceptance)")) {
+                        mappingEmo.remove("ยอมรับ(Acceptance)");
+                    }
+//                    if(emo.contains("รื่นเริง(Joy)")){
+//                        emo.remove("รื่นเริง(Joy)");
+//                    }
+                    if(mappingEmo.containsKey("รื่นเริง(Joy)")) {
+                        mappingEmo.remove("รื่นเริง(Joy)");
+                    }
+
+                }else if(countchexkemo <0&&checkshortcut>0){
+//                    if(emo.contains("ยอมรับ(Acceptance)")){
+//                        emo.remove("ยอมรับ(Acceptance)");
+//                    }
+                    if(mappingEmo.containsKey("ยอมรับ(Acceptance)")) {
+                        mappingEmo.remove("รยอมรับ(Acceptance)");
+                    }
+//                    if(emo.contains("รื่นเริง(Joy)")){
+//                        emo.remove("รื่นเริง(Joy)");
+//                    }
+                    if(mappingEmo.containsKey("รื่นเริง(Joy)")) {
+                        mappingEmo.remove("รื่นเริง(Joy)");
+                    }
+//                    if(emo.contains("ประหลาดใจ(Surprise)")){
+//                        emo.remove("ประหลาดใจ(Surprise)");
+//                    }
+                    if(mappingEmo.containsKey("ประหลาดใจ(Surprise)")) {
+                        mappingEmo.remove("ประหลาดใจ(Surprise)");
+                    }
+//                    if(emo.contains("คาดหวัง(Anticipation)")){
+//                        emo.remove("คาดหวัง(Anticipation)");
+//                    }
+                    if(mappingEmo.containsKey("คาดหวัง(Anticipation)")) {
+                        mappingEmo.remove("คาดหวัง(Anticipation)");
+                    }
+                }else {
+
+                    if(count > 0&&checkemo >0){
+                        //                    if(emo.contains("กลัว(Fear)")) {
+//                        emo.remove("กลัว(Fear)");
+//                    }
+                        if(mappingEmo.containsKey("กลัว(Fear))")) {
+                            mappingEmo.remove("กลัว(Fear)");
+                        }
+
+//                    if(emo.contains("รังเกียจ(Disgust)")){
+//                        emo.remove("รังเกียจ(Disgust)");
+//
+//                    }
+                        if(mappingEmo.containsKey("รังเกียจ(Disgust))")) {
+                            mappingEmo.remove("รังเกียจ(Disgust)");
+                        }
+//                    if(emo.contains("โกรธ(Anger)")){
+//                        emo.remove("โกรธ(Anger)");
+//                    }
+                        if(mappingEmo.containsKey("โกรธ(Anger)")) {
+                            mappingEmo.remove("โกรธ(Anger)");
+                        }
+//                    if(emo.contains("เศร้าเสียใจ(Sadness)")){
+//                        emo.remove("เศร้าเสียใจ(Sadness)");
+//                    }
+                        if(mappingEmo.containsKey("เศร้าเสียใจ(Sadness)")) {
+                            mappingEmo.remove("เศร้าเสียใจ(Sadness)");
+                        }
+//                    if(emo.contains("ประหลาดใจ(Surprise)")){
+//                        emo.remove("ประหลาดใจ(Surprise)");
+//                    }
+                        if(mappingEmo.containsKey("ประหลาดใจ(Surprise)")) {
+                            mappingEmo.remove("ประหลาดใจ(Surprise)");
+                        }
+//                    if(emo.contains("คาดหวัง(Anticipation)")){
+//                        emo.remove("คาดหวัง(Anticipation)");
+//                    }
+                        if(mappingEmo.containsKey("คาดหวัง(Anticipation)")) {
+                            mappingEmo.remove("คาดหวัง(Anticipation)");
+                        }
+
+
+                    }else if(count == 0&&checkemo >0){
+                        //                    if(emo.contains("กลัว(Fear)")) {
+//                        emo.remove("กลัว(Fear)");
+//                    }
+                        if(mappingEmo.containsKey("กลัว(Fear)")) {
+                            mappingEmo.remove("กลัว(Fear)");
+                        }
+//                    if(emo.contains("รังเกียจ(Disgust)")){
+//                        emo.remove("รังเกียจ(Disgust)");
+//
+//                    }
+                        if(mappingEmo.containsKey("รังเกียจ(Disgust)")) {
+                            mappingEmo.remove("รังเกียจ(Disgust)");
+                        }
+//                    if(emo.contains("โกรธ(Anger)")){
+//                        emo.remove("โกรธ(Anger)");
+//                    }
+                        if(mappingEmo.containsKey("โกรธ(Anger)")) {
+                            mappingEmo.remove("โกรธ(Anger)");
+                        }
+//                    if(emo.contains("เศร้าเสียใจ(Sadness)")){
+//                        emo.remove("เศร้าเสียใจ(Sadness)");
+//                    }
+                        if(mappingEmo.containsKey("เศร้าเสียใจ(Sadness)")) {
+                            mappingEmo.remove("เศร้าเสียใจ(Sadness)");
+                        }
+//                    if(emo.contains("ยอมรับ(Acceptance)")){
+//                        emo.remove("ยอมรับ(Acceptance)");
+//                    }
+                        if(mappingEmo.containsKey("ยอมรับ(Acceptance)")) {
+                            mappingEmo.remove("ยอมรับ(Acceptance)");
+                        }
+//                    if(emo.contains("รื่นเริง(Joy)")){
+//                        emo.remove("รื่นเริง(Joy)");
+//                    }
+                        if(mappingEmo.containsKey("รื่นเริง(Joy)")) {
+                            mappingEmo.remove("รื่นเริง(Joy)");
+                        }
+
+                    }else if(count < 0&&checkemo >0){
+                        //                    if(emo.contains("ยอมรับ(Acceptance)")){
+//                        emo.remove("ยอมรับ(Acceptance)");
+//                    }
+                        if(mappingEmo.containsKey("ยอมรับ(Acceptance)")) {
+                            mappingEmo.remove("รยอมรับ(Acceptance)");
+                        }
+//                    if(emo.contains("รื่นเริง(Joy)")){
+//                        emo.remove("รื่นเริง(Joy)");
+//                    }
+                        if(mappingEmo.containsKey("รื่นเริง(Joy)")) {
+                            mappingEmo.remove("รื่นเริง(Joy)");
+                        }
+//                    if(emo.contains("ประหลาดใจ(Surprise)")){
+//                        emo.remove("ประหลาดใจ(Surprise)");
+//                    }
+                        if(mappingEmo.containsKey("ประหลาดใจ(Surprise)")) {
+                            mappingEmo.remove("ประหลาดใจ(Surprise)");
+                        }
+//                    if(emo.contains("คาดหวัง(Anticipation)")){
+//                        emo.remove("คาดหวัง(Anticipation)");
+//                    }
+                        if(mappingEmo.containsKey("คาดหวัง(Anticipation)")) {
+                            mappingEmo.remove("คาดหวัง(Anticipation)");
+                        }
+
+                    }
+
+                }
+
+                int max = -9999999;
+                for(Map.Entry m : mappingEmo.entrySet()){
+                    Integer num = (Integer) m.getValue();
+                    if(num > max){
+                        max = num;
+                    }
+
+                }
+
+                for(Map.Entry m : mappingEmo.entrySet()){
+                    Integer num = (Integer) m.getValue();
+                    if(num == max){
+                     arrMapping.add((String)m.getKey());
+                    }
+                }
+
+
+
+
+
+               // Iterator<String> itremo = emo.iterator();
+
+
+       /* make the API call */
+                final StringBuffer emoneutral = new StringBuffer();
+                StringBuffer emopositive = new StringBuffer();
+                StringBuffer emonegetive = new StringBuffer();
+
+                int countnum = 0;
+                int countnum2 = 0;
+                int countnum3 = 0;
+
+                if(checkboxstate6 == 1) {
+                    if (countchexkemo == 0 && checkshortcut > 0) {
+//                        while (itremo.hasNext()) {
+//
+//
+//                            emoneutral.append(itremo.next().toString() + " ");
+//                            countnum++;
+//
+//
+//                        }
+                      if(arrMapping.size() == 0){
+                          emoneutral.append("-");
+                      }else if(arrMapping.size() == 1){
+                          if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                              emoneutral.append("-");
+                          }else{
+                              for(String s : arrMapping) {
+                                  emoneutral.append(s);
+                              }
+                          }
+                      }else{
+                          if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                              arrMapping.remove("ไม่แสดงอารมณ์");
+                          }
+                          for(String s : arrMapping) {
+                              emoneutral.append(s + " ");
+                          }
+
+                      }
+
+
+//                        if (countnum == 0) {
+//
+//                            emoneutral.append("-");
+//                        }
+                        final Dialog dialog = new Dialog(AccountActivity.this);
+                        dialog.setContentView(R.layout.neural_layout);
+                        dialog.setTitle("");
+
+
+                        TextView textatti = (TextView) dialog.findViewById(R.id.textneuralatti);
+                        TextView textemo = (TextView) dialog.findViewById(R.id.textneuralemo);
+                        Button dialogButton3 = (Button) dialog.findViewById(R.id.btncheckneural);
+
+                        textatti.setText("ทัศนคติ(Attitude)  : เป็นกลาง(Unexpressed)");
+                        textemo.setText("อารมณ์(Emotion) : " + emoneutral);
+                        ImageView image = (ImageView) dialog.findViewById(R.id.imageviewneural);
+                        image.setImageResource(R.drawable.yellow);
+
+                        Button dialogButton = (Button) dialog.findViewById(R.id.postneural_btn);
+                        Button dialogButton2 = (Button) dialog.findViewById(R.id.noneural_btn);
+                        dialogButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                        Bundle params = new Bundle();
+                        params.putString("message", message);
+                        new GraphRequest(
+                                AccessToken.getCurrentAccessToken(),
+                                "/me/feed",
+                                params,
+                                HttpMethod.POST,
+                                new GraphRequest.Callback() {
+                                    public void onCompleted(GraphResponse response) {
+                                        Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                        GraphRequest request = new GraphRequest(
+                                                AccessToken.getCurrentAccessToken(),
+                                                "/me/feed",
+                                                null,
+                                                HttpMethod.GET,
+                                                new GraphRequest.Callback() {
+                                                    public void onCompleted(GraphResponse response) {
+
+                                                        // JSON GETS THE DATA
+                                                        JSONObject jsonData = response.getJSONObject();
+
+                                                        try {
+
+                                                            JSONArray postsData = jsonData.getJSONArray("data");
+                                                            if (postsData != null) {
+
+                                                                for (int i = 0; i < postsData.length(); i++) {
+                                                                    JSONObject story = postsData.getJSONObject(i);
+
+                                                                    if (story.has("id")) {
+                                                                        String timeMessage = story.getString("id");
+                                                                        String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                        Uri uri = Uri.parse(facebook);
+                                                                        Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                        startActivity(intentfb);
+                                                                    }
+
+                                                                }
+
+
+                                                            }
+
+                                                        } catch (Exception e) {
+                                                            Log.d("JSON", "error" + e.toString());
+                                                        }
+
+                                                    }
+                                                }
+                                        );
+                                        Bundle parameters = new Bundle();
+                                        parameters.putString("fields", "id");
+                                        parameters.putString("limit", "1");
+                                        request.setParameters(parameters);
+                                        request.executeAsync();
+                                    }
+                                }
+                        ).executeAsync();
+                        editTextpost.setText("");
+
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton3.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                        .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.cancel();
+                                            }
+                                        });
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+
+                            }
+                        });
+
+
+                        dialog.show();
+
+
+
+                    } else if (countchexkemo < 0 && checkshortcut > 0) {
+
+                        Bundle params = new Bundle();
+                        params.putString("message", message);
+
+
+//                        while (itremo.hasNext()) {
+//
+//
+//                            emonegetive.append(itremo.next().toString() + " ");
+//                            countnum2++;
+//
+//
+//                        }
+                        if(arrMapping.size() == 0){
+                            emonegetive.append("-");
+                        }else if(arrMapping.size() == 1){
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                emonegetive.append("-");
+                            }else{
+                                for(String s : arrMapping) {
+                                    emonegetive.append(s);
+                                }
+                            }
+                        }else{
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                arrMapping.remove("ไม่แสดงอารมณ์");
+                            }
+                            for(String s : arrMapping) {
+                                emonegetive.append(s + " ");
+                            }
+
+                        }
+
+//                        if (countnum2 == 0) {
+//                            emonegetive.append("-");
+//                        }
+                        final Dialog dialog = new Dialog(AccountActivity.this);
+                        dialog.setContentView(R.layout.negetive_layout);
+                        dialog.setTitle("");
+
+
+                        TextView textatti = (TextView) dialog.findViewById(R.id.textnegetiveatti);
+                        TextView textemo = (TextView) dialog.findViewById(R.id.textnegetiveemo);
+                        Button dialogButton3 = (Button) dialog.findViewById(R.id.btnchecknegetive);
+
+                        textatti.setText("ทัศนคติ(Attitude) : เชิงลบ(Negative)");
+                        textemo.setText("อารมณ์(Emotion) : " + emonegetive);
+                        ImageView image = (ImageView) dialog.findViewById(R.id.imageviewnegetive);
+                        image.setImageResource(R.drawable.red);
+
+                        Button dialogButton = (Button) dialog.findViewById(R.id.postnegetive_btn);
+                        Button dialogButton2 = (Button) dialog.findViewById(R.id.nonegetive_btn);
+                        dialogButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Bundle params = new Bundle();
+                                params.putString("message", message);
+                                new GraphRequest(
+                                        AccessToken.getCurrentAccessToken(),
+                                        "/me/feed",
+                                        params,
+                                        HttpMethod.POST,
+                                        new GraphRequest.Callback() {
+                                            public void onCompleted(GraphResponse response) {
+                                                Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                GraphRequest request = new GraphRequest(
+                                                        AccessToken.getCurrentAccessToken(),
+                                                        "/me/feed",
+                                                        null,
+                                                        HttpMethod.GET,
+                                                        new GraphRequest.Callback() {
+                                                            public void onCompleted(GraphResponse response) {
+
+                                                                // JSON GETS THE DATA
+                                                                JSONObject jsonData = response.getJSONObject();
+
+                                                                try {
+
+                                                                    JSONArray postsData = jsonData.getJSONArray("data");
+                                                                    if (postsData != null) {
+
+                                                                        for (int i = 0; i < postsData.length(); i++) {
+                                                                            JSONObject story = postsData.getJSONObject(i);
+
+                                                                            if (story.has("id")) {
+                                                                                String timeMessage = story.getString("id");
+                                                                                String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                Uri uri = Uri.parse(facebook);
+                                                                                Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                startActivity(intentfb);
+                                                                            }
+
+                                                                        }
+
+
+                                                                    }
+
+                                                                } catch (Exception e) {
+                                                                    Log.d("JSON", "error" + e.toString());
+                                                                }
+
+                                                            }
+                                                        }
+                                                );
+                                                Bundle parameters = new Bundle();
+                                                parameters.putString("fields", "id");
+                                                parameters.putString("limit", "1");
+                                                request.setParameters(parameters);
+                                                request.executeAsync();
+                                            }
+                                        }
+                                ).executeAsync();
+                                editTextpost.setText("");
+
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton3.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                        .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.cancel();
+                                            }
+                                        });
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+
+                            }
+                        });
+
+                        dialog.show();
+
+
+                    } else if (countchexkemo > 0 && checkshortcut > 0) {
+
+                                Bundle params = new Bundle();
+                                params.putString("message", message);
+                                new GraphRequest(
+                                        AccessToken.getCurrentAccessToken(),
+                                        "/me/feed",
+                                        params,
+                                        HttpMethod.POST,
+                                        new GraphRequest.Callback() {
+                                            public void onCompleted(GraphResponse response) {
+                                                Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                GraphRequest request = new GraphRequest(
+                                                        AccessToken.getCurrentAccessToken(),
+                                                        "/me/feed",
+                                                        null,
+                                                        HttpMethod.GET,
+                                                        new GraphRequest.Callback() {
+                                                            public void onCompleted(GraphResponse response) {
+
+                                                                // JSON GETS THE DATA
+                                                                JSONObject jsonData = response.getJSONObject();
+
+                                                                try {
+
+                                                                    JSONArray postsData = jsonData.getJSONArray("data");
+                                                                    if (postsData != null) {
+
+                                                                        for (int i = 0; i < postsData.length(); i++) {
+                                                                            JSONObject story = postsData.getJSONObject(i);
+
+                                                                            if (story.has("id")) {
+                                                                                String timeMessage = story.getString("id");
+                                                                                String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                Uri uri = Uri.parse(facebook);
+                                                                                Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                startActivity(intentfb);
+                                                                            }
+
+                                                                        }
+
+
+                                                                    }
+
+                                                                } catch (Exception e) {
+                                                                    Log.d("JSON", "error" + e.toString());
+                                                                }
+
+                                                            }
+                                                        }
+                                                );
+                                                Bundle parameters = new Bundle();
+                                                parameters.putString("fields", "id");
+                                                parameters.putString("limit", "1");
+                                                request.setParameters(parameters);
+                                                request.executeAsync();
+                                            }
+                                        }
+                                ).executeAsync();
+                                editTextpost.setText("");
+
+
+                    } else {
+
+
+                        if (count == 0 && checkemo > 0) {
+
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+
+//                            while (itremo.hasNext()) {
+//
+//
+//                                emoneutral.append(itremo.next() + " ");
+//                                countnum++;
+//
+//
+//                            }
+                            if(arrMapping.size() == 0){
+                                emoneutral.append("-");
+                            }else if(arrMapping.size() == 1){
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    emoneutral.append("-");
+                                }else{
+                                    for(String s : arrMapping) {
+                                        emoneutral.append(s);
+                                    }
+                                }
+                            }else{
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    arrMapping.remove("ไม่แสดงอารมณ์");
+                                }
+                                for(String s : arrMapping) {
+                                    emoneutral.append(s + " ");
+                                }
+
+                            }
+//                            if (countnum == 0) {
+//
+//                                emoneutral.append("-");
+//                            }
+                            final Dialog dialog = new Dialog(AccountActivity.this);
+                            dialog.setContentView(R.layout.neural_layout);
+                            dialog.setTitle("");
+
+
+                            TextView textatti = (TextView) dialog.findViewById(R.id.textneuralatti);
+                            TextView textemo = (TextView) dialog.findViewById(R.id.textneuralemo);
+                            Button dialogButton3 = (Button) dialog.findViewById(R.id.btncheckneural);
+
+                            textatti.setText("ทัศนคติ(Attitude)  : เป็นกลาง(Unexpressed)");
+                            textemo.setText("อารมณ์(Emotion) : " + emoneutral);
+                            ImageView image = (ImageView) dialog.findViewById(R.id.imageviewneural);
+                            image.setImageResource(R.drawable.yellow);
+
+                            Button dialogButton = (Button) dialog.findViewById(R.id.postneural_btn);
+                            Button dialogButton2 = (Button) dialog.findViewById(R.id.noneural_btn);
+                            dialogButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Bundle params = new Bundle();
+                                    params.putString("message", message);
+                                    new GraphRequest(
+                                            AccessToken.getCurrentAccessToken(),
+                                            "/me/feed",
+                                            params,
+                                            HttpMethod.POST,
+                                            new GraphRequest.Callback() {
+                                                public void onCompleted(GraphResponse response) {
+                                                    Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                    GraphRequest request = new GraphRequest(
+                                                            AccessToken.getCurrentAccessToken(),
+                                                            "/me/feed",
+                                                            null,
+                                                            HttpMethod.GET,
+                                                            new GraphRequest.Callback() {
+                                                                public void onCompleted(GraphResponse response) {
+
+                                                                    // JSON GETS THE DATA
+                                                                    JSONObject jsonData = response.getJSONObject();
+
+                                                                    try {
+
+                                                                        JSONArray postsData = jsonData.getJSONArray("data");
+                                                                        if (postsData != null) {
+
+                                                                            for (int i = 0; i < postsData.length(); i++) {
+                                                                                JSONObject story = postsData.getJSONObject(i);
+
+                                                                                if (story.has("id")) {
+                                                                                    String timeMessage = story.getString("id");
+                                                                                    String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                    Uri uri = Uri.parse(facebook);
+                                                                                    Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                    startActivity(intentfb);
+                                                                                }
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    } catch (Exception e) {
+                                                                        Log.d("JSON", "error" + e.toString());
+                                                                    }
+
+                                                                }
+                                                            }
+                                                    );
+                                                    Bundle parameters = new Bundle();
+                                                    parameters.putString("fields", "id");
+                                                    parameters.putString("limit", "1");
+                                                    request.setParameters(parameters);
+                                                    request.executeAsync();
+                                                }
+                                            }
+                                    ).executeAsync();
+                                    editTextpost.setText("");
+
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton3.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                    builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                            .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.cancel();
+                                                }
+                                            });
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+
+                                }
+                            });
+
+                            dialog.show();
+
+
+                        } else if (count < 0 && checkemo > 0) {
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+
+
+//                            while (itremo.hasNext()) {
+//
+//
+//                                emonegetive.append(itremo.next() + " ");
+//                                countnum2++;
+//
+//
+//                            }
+                            if(arrMapping.size() == 0){
+                                emonegetive.append("-");
+                            }else if(arrMapping.size() == 1){
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    emonegetive.append("-");
+                                }else{
+                                    for(String s : arrMapping) {
+                                        emonegetive.append(s);
+                                    }
+                                }
+                            }else{
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    arrMapping.remove("ไม่แสดงอารมณ์");
+                                }
+                                for(String s : arrMapping) {
+                                    emonegetive.append(s + " ");
+                                }
+
+                            }
+
+//                            if (countnum2 == 0) {
+//                                emonegetive.append("-");
+//                            }
+                            final Dialog dialog = new Dialog(AccountActivity.this);
+                            dialog.setContentView(R.layout.negetive_layout);
+                            dialog.setTitle("");
+
+
+                            TextView textatti = (TextView) dialog.findViewById(R.id.textnegetiveatti);
+                            TextView textemo = (TextView) dialog.findViewById(R.id.textnegetiveemo);
+                            Button dialogButton3 = (Button) dialog.findViewById(R.id.btnchecknegetive);
+
+                            textatti.setText("ทัศนคติ(Attitude) : เชิงลบ(Negative)");
+                            textemo.setText("อารมณ์(Emotion) : " + emonegetive);
+                            ImageView image = (ImageView) dialog.findViewById(R.id.imageviewnegetive);
+                            image.setImageResource(R.drawable.red);
+
+                            Button dialogButton = (Button) dialog.findViewById(R.id.postnegetive_btn);
+                            Button dialogButton2 = (Button) dialog.findViewById(R.id.nonegetive_btn);
+                            dialogButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Bundle params = new Bundle();
+                                    params.putString("message", message);
+                                    new GraphRequest(
+                                            AccessToken.getCurrentAccessToken(),
+                                            "/me/feed",
+                                            params,
+                                            HttpMethod.POST,
+                                            new GraphRequest.Callback() {
+                                                public void onCompleted(GraphResponse response) {
+                                                    Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                    GraphRequest request = new GraphRequest(
+                                                            AccessToken.getCurrentAccessToken(),
+                                                            "/me/feed",
+                                                            null,
+                                                            HttpMethod.GET,
+                                                            new GraphRequest.Callback() {
+                                                                public void onCompleted(GraphResponse response) {
+
+                                                                    // JSON GETS THE DATA
+                                                                    JSONObject jsonData = response.getJSONObject();
+
+                                                                    try {
+
+                                                                        JSONArray postsData = jsonData.getJSONArray("data");
+                                                                        if (postsData != null) {
+
+                                                                            for (int i = 0; i < postsData.length(); i++) {
+                                                                                JSONObject story = postsData.getJSONObject(i);
+
+                                                                                if (story.has("id")) {
+                                                                                    String timeMessage = story.getString("id");
+                                                                                    String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                    Uri uri = Uri.parse(facebook);
+                                                                                    Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                    startActivity(intentfb);
+                                                                                }
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    } catch (Exception e) {
+                                                                        Log.d("JSON", "error" + e.toString());
+                                                                    }
+
+                                                                }
+                                                            }
+                                                    );
+                                                    Bundle parameters = new Bundle();
+                                                    parameters.putString("fields", "id");
+                                                    parameters.putString("limit", "1");
+                                                    request.setParameters(parameters);
+                                                    request.executeAsync();
+                                                }
+                                            }
+                                    ).executeAsync();
+                                    editTextpost.setText("");
+
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton3.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                    builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                            .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.cancel();
+                                                }
+                                            });
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+
+                                }
+                            });
+
+                            dialog.show();
+
+
+                        } else if (count > 0 && checkemo > 0) {
+
+                                    Bundle params = new Bundle();
+                                    params.putString("message", message);
+                                    new GraphRequest(
+                                            AccessToken.getCurrentAccessToken(),
+                                            "/me/feed",
+                                            params,
+                                            HttpMethod.POST,
+                                            new GraphRequest.Callback() {
+                                                public void onCompleted(GraphResponse response) {
+                                                    Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                    GraphRequest request = new GraphRequest(
+                                                            AccessToken.getCurrentAccessToken(),
+                                                            "/me/feed",
+                                                            null,
+                                                            HttpMethod.GET,
+                                                            new GraphRequest.Callback() {
+                                                                public void onCompleted(GraphResponse response) {
+
+                                                                    // JSON GETS THE DATA
+                                                                    JSONObject jsonData = response.getJSONObject();
+
+                                                                    try {
+
+                                                                        JSONArray postsData = jsonData.getJSONArray("data");
+                                                                        if (postsData != null) {
+
+                                                                            for (int i = 0; i < postsData.length(); i++) {
+                                                                                JSONObject story = postsData.getJSONObject(i);
+
+                                                                                if (story.has("id")) {
+                                                                                    String timeMessage = story.getString("id");
+                                                                                    String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                    Uri uri = Uri.parse(facebook);
+                                                                                    Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                    startActivity(intentfb);
+                                                                                }
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    } catch (Exception e) {
+                                                                        Log.d("JSON", "error" + e.toString());
+                                                                    }
+
+                                                                }
+                                                            }
+                                                    );
+                                                    Bundle parameters = new Bundle();
+                                                    parameters.putString("fields", "id");
+                                                    parameters.putString("limit", "1");
+                                                    request.setParameters(parameters);
+                                                    request.executeAsync();
+                                                }
+                                            }
+                                    ).executeAsync();
+
+                                    editTextpost.setText("");
+
+
+
+                        } else {
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                            builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                    .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            dialogInterface.cancel();
+                                        }
+                                    });
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+                            new GraphRequest(
+                                    AccessToken.getCurrentAccessToken(),
+                                    "/me/feed",
+                                    params,
+                                    HttpMethod.POST,
+                                    new GraphRequest.Callback() {
+                                        public void onCompleted(GraphResponse response) {
+                                            Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                            GraphRequest request = new GraphRequest(
+                                                    AccessToken.getCurrentAccessToken(),
+                                                    "/me/feed",
+                                                    null,
+                                                    HttpMethod.GET,
+                                                    new GraphRequest.Callback() {
+                                                        public void onCompleted(GraphResponse response) {
+
+                                                            // JSON GETS THE DATA
+                                                            JSONObject jsonData = response.getJSONObject();
+
+                                                            try {
+
+                                                                JSONArray postsData = jsonData.getJSONArray("data");
+                                                                if (postsData != null) {
+
+                                                                    for (int i = 0; i < postsData.length(); i++) {
+                                                                        JSONObject story = postsData.getJSONObject(i);
+
+                                                                        if (story.has("id")) {
+                                                                            String timeMessage = story.getString("id");
+                                                                            String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                            Uri uri = Uri.parse(facebook);
+                                                                            Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                            startActivity(intentfb);
+                                                                        }
+
+                                                                    }
+
+
+                                                                }
+
+                                                            } catch (Exception e) {
+                                                                Log.d("JSON", "error" + e.toString());
+                                                            }
+
+                                                        }
+                                                    }
+                                            );
+                                            Bundle parameters = new Bundle();
+                                            parameters.putString("fields", "id");
+                                            parameters.putString("limit", "1");
+                                            request.setParameters(parameters);
+                                            request.executeAsync();
+                                        }
+                                    }
+                            ).executeAsync();
+
+                        }
+
+                    }
+                }else if(checkboxstate6 == 0) {
+
+                    if (countchexkemo == 0 && checkshortcut > 0) {
+
+
+                        Bundle params = new Bundle();
+                        params.putString("message", message);
+
+//                        while (itremo.hasNext()) {
+//
+//
+//                            emoneutral.append(itremo.next().toString() + " ");
+//                            countnum++;
+//
+//
+//                        }
+                        if(arrMapping.size() == 0){
+                            emoneutral.append("-");
+                        }else if(arrMapping.size() == 1){
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                emoneutral.append("-");
+                            }else{
+                                for(String s : arrMapping) {
+                                    emoneutral.append(s);
+                                }
+                            }
+                        }else{
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                arrMapping.remove("ไม่แสดงอารมณ์");
+                            }
+                            for(String s : arrMapping) {
+                                emoneutral.append(s + " ");
+                            }
+
+                        }
+
+//                        if (countnum == 0) {
+//
+//                            emoneutral.append("-");
+//                        }
+                        final Dialog dialog = new Dialog(AccountActivity.this);
+                        dialog.setContentView(R.layout.neural_layout);
+                        dialog.setTitle("");
+
+
+                        TextView textatti = (TextView) dialog.findViewById(R.id.textneuralatti);
+                        TextView textemo = (TextView) dialog.findViewById(R.id.textneuralemo);
+                        Button dialogButton3 = (Button) dialog.findViewById(R.id.btncheckneural);
+
+                        textatti.setText("ทัศนคติ(Attitude)  : เป็นกลาง(Unexpressed)");
+                        textemo.setText("อารมณ์(Emotion) : " + emoneutral);
+                        ImageView image = (ImageView) dialog.findViewById(R.id.imageviewneural);
+                        image.setImageResource(R.drawable.yellow);
+
+                        Button dialogButton = (Button) dialog.findViewById(R.id.postneural_btn);
+                        Button dialogButton2 = (Button) dialog.findViewById(R.id.noneural_btn);
+                        dialogButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Bundle params = new Bundle();
+                                params.putString("message", message);
+                                new GraphRequest(
+                                        AccessToken.getCurrentAccessToken(),
+                                        "/me/feed",
+                                        params,
+                                        HttpMethod.POST,
+                                        new GraphRequest.Callback() {
+                                            public void onCompleted(GraphResponse response) {
+                                                Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                GraphRequest request = new GraphRequest(
+                                                        AccessToken.getCurrentAccessToken(),
+                                                        "/me/feed",
+                                                        null,
+                                                        HttpMethod.GET,
+                                                        new GraphRequest.Callback() {
+                                                            public void onCompleted(GraphResponse response) {
+
+                                                                // JSON GETS THE DATA
+                                                                JSONObject jsonData = response.getJSONObject();
+
+                                                                try {
+
+                                                                    JSONArray postsData = jsonData.getJSONArray("data");
+                                                                    if (postsData != null) {
+
+                                                                        for (int i = 0; i < postsData.length(); i++) {
+                                                                            JSONObject story = postsData.getJSONObject(i);
+
+                                                                            if (story.has("id")) {
+                                                                                String timeMessage = story.getString("id");
+                                                                                String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                Uri uri = Uri.parse(facebook);
+                                                                                Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                startActivity(intentfb);
+                                                                            }
+
+                                                                        }
+
+
+                                                                    }
+
+                                                                } catch (Exception e) {
+                                                                    Log.d("JSON", "error" + e.toString());
+                                                                }
+
+                                                            }
+                                                        }
+                                                );
+                                                Bundle parameters = new Bundle();
+                                                parameters.putString("fields", "id");
+                                                parameters.putString("limit", "1");
+                                                request.setParameters(parameters);
+                                                request.executeAsync();
+                                            }
+                                        }
+                                ).executeAsync();
+                                editTextpost.setText("");
+
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton3.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                        .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.cancel();
+                                            }
+                                        });
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+
+                            }
+                        });
+
+
+                        dialog.show();
+
+
+                    } else if (countchexkemo < 0 && checkshortcut > 0) {
+
+                        Bundle params = new Bundle();
+                        params.putString("message", message);
+
+
+//                        while (itremo.hasNext()) {
+//
+//
+//                            emonegetive.append(itremo.next().toString() + " ");
+//                            countnum2++;
+//
+//
+//                        }
+                        if(arrMapping.size() == 0){
+                            emonegetive.append("-");
+                        }else if(arrMapping.size() == 1){
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                emonegetive.append("-");
+                            }else{
+                                for(String s : arrMapping) {
+                                    emonegetive.append(s);
+                                }
+                            }
+                        }else{
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                arrMapping.remove("ไม่แสดงอารมณ์");
+                            }
+                            for(String s : arrMapping) {
+                                emonegetive.append(s + " ");
+                            }
+
+                        }
+
+//                        if (countnum2 == 0) {
+//                            emonegetive.append("-");
+//                        }
+                        final Dialog dialog = new Dialog(AccountActivity.this);
+                        dialog.setContentView(R.layout.negetive_layout);
+                        dialog.setTitle("");
+
+
+                        TextView textatti = (TextView) dialog.findViewById(R.id.textnegetiveatti);
+                        TextView textemo = (TextView) dialog.findViewById(R.id.textnegetiveemo);
+                        Button dialogButton3 = (Button) dialog.findViewById(R.id.btnchecknegetive);
+
+                        textatti.setText("ทัศนคติ(Attitude) : เชิงลบ(Negative)");
+                        textemo.setText("อารมณ์(Emotion) : " + emonegetive);
+                        ImageView image = (ImageView) dialog.findViewById(R.id.imageviewnegetive);
+                        image.setImageResource(R.drawable.red);
+
+                        Button dialogButton = (Button) dialog.findViewById(R.id.postnegetive_btn);
+                        Button dialogButton2 = (Button) dialog.findViewById(R.id.nonegetive_btn);
+                        dialogButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Bundle params = new Bundle();
+                                params.putString("message", message);
+                                new GraphRequest(
+                                        AccessToken.getCurrentAccessToken(),
+                                        "/me/feed",
+                                        params,
+                                        HttpMethod.POST,
+                                        new GraphRequest.Callback() {
+                                            public void onCompleted(GraphResponse response) {
+                                                Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                GraphRequest request = new GraphRequest(
+                                                        AccessToken.getCurrentAccessToken(),
+                                                        "/me/feed",
+                                                        null,
+                                                        HttpMethod.GET,
+                                                        new GraphRequest.Callback() {
+                                                            public void onCompleted(GraphResponse response) {
+
+                                                                // JSON GETS THE DATA
+                                                                JSONObject jsonData = response.getJSONObject();
+
+                                                                try {
+
+                                                                    JSONArray postsData = jsonData.getJSONArray("data");
+                                                                    if (postsData != null) {
+
+                                                                        for (int i = 0; i < postsData.length(); i++) {
+                                                                            JSONObject story = postsData.getJSONObject(i);
+
+                                                                            if (story.has("id")) {
+                                                                                String timeMessage = story.getString("id");
+                                                                                String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                Uri uri = Uri.parse(facebook);
+                                                                                Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                startActivity(intentfb);
+                                                                            }
+
+                                                                        }
+
+
+                                                                    }
+
+                                                                } catch (Exception e) {
+                                                                    Log.d("JSON", "error" + e.toString());
+                                                                }
+
+                                                            }
+                                                        }
+                                                );
+                                                Bundle parameters = new Bundle();
+                                                parameters.putString("fields", "id");
+                                                parameters.putString("limit", "1");
+                                                request.setParameters(parameters);
+                                                request.executeAsync();
+                                            }
+                                        }
+                                ).executeAsync();
+                                editTextpost.setText("");
+
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton3.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                        .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.cancel();
+                                            }
+                                        });
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+
+                            }
+                        });
+
+                        dialog.show();
+
+
+                    } else if (countchexkemo > 0 && checkshortcut > 0) {
+
+                        Bundle params = new Bundle();
+                        params.putString("message", message);
+
+//                        while (itremo.hasNext()) {
+//
+//
+//                            emopositive.append(itremo.next().toString() + " ");
+//                            countnum3++;
+//
+//
+//                        }
+                        if(arrMapping.size() == 0){
+                            emopositive.append("-");
+                        }else if(arrMapping.size() == 1){
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                emopositive.append("-");
+                            }else{
+                                for(String s : arrMapping) {
+                                    emopositive.append(s);
+                                }
+                            }
+                        }else{
+                            if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                arrMapping.remove("ไม่แสดงอารมณ์");
+                            }
+                            for(String s : arrMapping) {
+                                emopositive.append(s + " ");
+                            }
+
+                        }
+
+//                        if (countnum3 == 0) {
+//                            emopositive.append("-");
+//
+//                        }
+                        final Dialog dialog = new Dialog(AccountActivity.this);
+                        dialog.setContentView(R.layout.positive_layout);
+                        dialog.setTitle("");
+
+
+                        TextView textatti = (TextView) dialog.findViewById(R.id.textpositiveatti);
+                        TextView textemo = (TextView) dialog.findViewById(R.id.textpositiveemo);
+
+                        Button dialogButton3 = (Button) dialog.findViewById(R.id.btnpostsitive);
+
+                        textatti.setText("ทัศนคติ(Attitude) : เชิงบวก(Positive)");
+                        textemo.setText("อารมณ์(Emotion) : " + emopositive);
+                        ImageView image = (ImageView) dialog.findViewById(R.id.imageviewpositive);
+                        image.setImageResource(R.drawable.green);
+
+                        Button dialogButton = (Button) dialog.findViewById(R.id.post_btn);
+                        Button dialogButton2 = (Button) dialog.findViewById(R.id.no_btn);
+                        dialogButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Bundle params = new Bundle();
+                                params.putString("message", message);
+                                new GraphRequest(
+                                        AccessToken.getCurrentAccessToken(),
+                                        "/me/feed",
+                                        params,
+                                        HttpMethod.POST,
+                                        new GraphRequest.Callback() {
+                                            public void onCompleted(GraphResponse response) {
+                                                Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                GraphRequest request = new GraphRequest(
+                                                        AccessToken.getCurrentAccessToken(),
+                                                        "/me/feed",
+                                                        null,
+                                                        HttpMethod.GET,
+                                                        new GraphRequest.Callback() {
+                                                            public void onCompleted(GraphResponse response) {
+
+                                                                // JSON GETS THE DATA
+                                                                JSONObject jsonData = response.getJSONObject();
+
+                                                                try {
+
+                                                                    JSONArray postsData = jsonData.getJSONArray("data");
+                                                                    if (postsData != null) {
+
+                                                                        for (int i = 0; i < postsData.length(); i++) {
+                                                                            JSONObject story = postsData.getJSONObject(i);
+
+                                                                            if (story.has("id")) {
+                                                                                String timeMessage = story.getString("id");
+                                                                                String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                Uri uri = Uri.parse(facebook);
+                                                                                Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                startActivity(intentfb);
+                                                                            }
+
+                                                                        }
+
+
+                                                                    }
+
+                                                                } catch (Exception e) {
+                                                                    Log.d("JSON", "error" + e.toString());
+                                                                }
+
+                                                            }
+                                                        }
+                                                );
+                                                Bundle parameters = new Bundle();
+                                                parameters.putString("fields", "id");
+                                                parameters.putString("limit", "1");
+                                                request.setParameters(parameters);
+                                                request.executeAsync();
+                                            }
+                                        }
+                                ).executeAsync();
+                                editTextpost.setText("");
+
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialogButton3.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                        .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.cancel();
+                                            }
+                                        });
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+
+                            }
+                        });
+
+
+                        dialog.show();
+
+
+                    } else {
+
+
+                        if (count == 0 && checkemo > 0) {
+
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+
+//                            while (itremo.hasNext()) {
+//
+//
+//                                emoneutral.append(itremo.next() + " ");
+//                                countnum++;
+//
+//
+//                            }
+                            if(arrMapping.size() == 0){
+                                emoneutral.append("-");
+                            }else if(arrMapping.size() == 1){
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    emoneutral.append("-");
+                                }else{
+                                    for(String s : arrMapping) {
+                                        emoneutral.append(s);
+                                    }
+                                }
+                            }else{
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    arrMapping.remove("ไม่แสดงอารมณ์");
+                                }
+                                for(String s : arrMapping) {
+                                    emoneutral.append(s + " ");
+                                }
+
+                            }
+//                            if (countnum == 0) {
+//
+//                                emoneutral.append("-");
+//                            }
+                            final Dialog dialog = new Dialog(AccountActivity.this);
+                            dialog.setContentView(R.layout.neural_layout);
+                            dialog.setTitle("");
+
+
+                            TextView textatti = (TextView) dialog.findViewById(R.id.textneuralatti);
+                            TextView textemo = (TextView) dialog.findViewById(R.id.textneuralemo);
+                            Button dialogButton3 = (Button) dialog.findViewById(R.id.btncheckneural);
+
+                            textatti.setText("ทัศนคติ(Attitude)  : เป็นกลาง(Unexpressed)");
+                            textemo.setText("อารมณ์(Emotion) : " + emoneutral);
+                            ImageView image = (ImageView) dialog.findViewById(R.id.imageviewneural);
+                            image.setImageResource(R.drawable.yellow);
+
+                            Button dialogButton = (Button) dialog.findViewById(R.id.postneural_btn);
+                            Button dialogButton2 = (Button) dialog.findViewById(R.id.noneural_btn);
+                            dialogButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Bundle params = new Bundle();
+                                    params.putString("message", message);
+                                    new GraphRequest(
+                                            AccessToken.getCurrentAccessToken(),
+                                            "/me/feed",
+                                            params,
+                                            HttpMethod.POST,
+                                            new GraphRequest.Callback() {
+                                                public void onCompleted(GraphResponse response) {
+                                                    Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                    GraphRequest request = new GraphRequest(
+                                                            AccessToken.getCurrentAccessToken(),
+                                                            "/me/feed",
+                                                            null,
+                                                            HttpMethod.GET,
+                                                            new GraphRequest.Callback() {
+                                                                public void onCompleted(GraphResponse response) {
+
+                                                                    // JSON GETS THE DATA
+                                                                    JSONObject jsonData = response.getJSONObject();
+
+                                                                    try {
+
+                                                                        JSONArray postsData = jsonData.getJSONArray("data");
+                                                                        if (postsData != null) {
+
+                                                                            for (int i = 0; i < postsData.length(); i++) {
+                                                                                JSONObject story = postsData.getJSONObject(i);
+
+                                                                                if (story.has("id")) {
+                                                                                    String timeMessage = story.getString("id");
+                                                                                    String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                    Uri uri = Uri.parse(facebook);
+                                                                                    Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                    startActivity(intentfb);
+                                                                                }
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    } catch (Exception e) {
+                                                                        Log.d("JSON", "error" + e.toString());
+                                                                    }
+
+                                                                }
+                                                            }
+                                                    );
+                                                    Bundle parameters = new Bundle();
+                                                    parameters.putString("fields", "id");
+                                                    parameters.putString("limit", "1");
+                                                    request.setParameters(parameters);
+                                                    request.executeAsync();
+                                                }
+                                            }
+                                    ).executeAsync();
+                                    editTextpost.setText("");
+
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton3.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                    builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                            .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.cancel();
+                                                }
+                                            });
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+
+                                }
+                            });
+
+                            dialog.show();
+
+
+                        } else if (count < 0 && checkemo > 0) {
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+
+
+//                            while (itremo.hasNext()) {
+//
+//
+//                                emonegetive.append(itremo.next() + " ");
+//                                countnum2++;
+//
+//
+//                            }
+                            if(arrMapping.size() == 0){
+                                emonegetive.append("-");
+                            }else if(arrMapping.size() == 1){
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    emonegetive.append("-");
+                                }else{
+                                    for(String s : arrMapping) {
+                                        emonegetive.append(s);
+                                    }
+                                }
+                            }else{
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    arrMapping.remove("ไม่แสดงอารมณ์");
+                                }
+                                for(String s : arrMapping) {
+                                    emonegetive.append(s + " ");
+                                }
+
+                            }
+
+//                            if (countnum2 == 0) {
+//                                emonegetive.append("-");
+//                            }
+                            final Dialog dialog = new Dialog(AccountActivity.this);
+                            dialog.setContentView(R.layout.negetive_layout);
+                            dialog.setTitle("");
+
+
+                            TextView textatti = (TextView) dialog.findViewById(R.id.textnegetiveatti);
+                            TextView textemo = (TextView) dialog.findViewById(R.id.textnegetiveemo);
+                            Button dialogButton3 = (Button) dialog.findViewById(R.id.btnchecknegetive);
+
+                            textatti.setText("ทัศนคติ(Attitude) : เชิงลบ(Negative)");
+                            textemo.setText("อารมณ์(Emotion) : " + emonegetive);
+                            ImageView image = (ImageView) dialog.findViewById(R.id.imageviewnegetive);
+                            image.setImageResource(R.drawable.red);
+
+                            Button dialogButton = (Button) dialog.findViewById(R.id.postnegetive_btn);
+                            Button dialogButton2 = (Button) dialog.findViewById(R.id.nonegetive_btn);
+                            dialogButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Bundle params = new Bundle();
+                                    params.putString("message", message);
+                                    new GraphRequest(
+                                            AccessToken.getCurrentAccessToken(),
+                                            "/me/feed",
+                                            params,
+                                            HttpMethod.POST,
+                                            new GraphRequest.Callback() {
+                                                public void onCompleted(GraphResponse response) {
+                                                    Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                    GraphRequest request = new GraphRequest(
+                                                            AccessToken.getCurrentAccessToken(),
+                                                            "/me/feed",
+                                                            null,
+                                                            HttpMethod.GET,
+                                                            new GraphRequest.Callback() {
+                                                                public void onCompleted(GraphResponse response) {
+
+                                                                    // JSON GETS THE DATA
+                                                                    JSONObject jsonData = response.getJSONObject();
+
+                                                                    try {
+
+                                                                        JSONArray postsData = jsonData.getJSONArray("data");
+                                                                        if (postsData != null) {
+
+                                                                            for (int i = 0; i < postsData.length(); i++) {
+                                                                                JSONObject story = postsData.getJSONObject(i);
+
+                                                                                if (story.has("id")) {
+                                                                                    String timeMessage = story.getString("id");
+                                                                                    String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                    Uri uri = Uri.parse(facebook);
+                                                                                    Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                    startActivity(intentfb);
+                                                                                }
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    } catch (Exception e) {
+                                                                        Log.d("JSON", "error" + e.toString());
+                                                                    }
+
+                                                                }
+                                                            }
+                                                    );
+                                                    Bundle parameters = new Bundle();
+                                                    parameters.putString("fields", "id");
+                                                    parameters.putString("limit", "1");
+                                                    request.setParameters(parameters);
+                                                    request.executeAsync();
+                                                }
+                                            }
+                                    ).executeAsync();
+                                    editTextpost.setText("");
+
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton3.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                    builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                            .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.cancel();
+                                                }
+                                            });
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+
+                                }
+                            });
+
+                            dialog.show();
+
+
+                        } else if (count > 0 && checkemo > 0) {
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+
+
+//                            while (itremo.hasNext()) {
+//
+//
+//                                emopositive.append(itremo.next().toString() + " ");
+//                                countnum3++;
+//
+//
+//                            }
+                            if(arrMapping.size() == 0){
+                                emopositive.append("-");
+                            }else if(arrMapping.size() == 1){
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    emopositive.append("-");
+                                }else{
+                                    for(String s : arrMapping) {
+                                        emopositive.append(s);
+                                    }
+                                }
+                            }else{
+                                if(arrMapping.contains("ไม่แสดงอารมณ์")){
+                                    arrMapping.remove("ไม่แสดงอารมณ์");
+                                }
+                                for(String s : arrMapping) {
+                                    emopositive.append(s + " ");
+                                }
+
+                            }
+
+//                            if (countnum3 == 0) {
+//                                emopositive.append("-");
+//
+//                            }
+                            final Dialog dialog = new Dialog(AccountActivity.this);
+                            dialog.setContentView(R.layout.positive_layout);
+                            dialog.setTitle("");
+
+                            TextView textatti = (TextView) dialog.findViewById(R.id.textpositiveatti);
+                            TextView textemo = (TextView) dialog.findViewById(R.id.textpositiveemo);
+                            textatti.setText("ทัศนคติ(Attitude) : เชิงบวก(Positive)");
+                            textemo.setText("อารมณ์(Emotion) : " + emopositive);
+                            ImageView image = (ImageView) dialog.findViewById(R.id.imageviewpositive);
+                            image.setImageResource(R.drawable.green);
+
+                            Button dialogButton = (Button) dialog.findViewById(R.id.post_btn);
+                            Button dialogButton2 = (Button) dialog.findViewById(R.id.no_btn);
+                            Button dialogButton3 = (Button) dialog.findViewById(R.id.btnpostsitive);
+                            dialogButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Bundle params = new Bundle();
+                                    params.putString("message", message);
+                                    new GraphRequest(
+                                            AccessToken.getCurrentAccessToken(),
+                                            "/me/feed",
+                                            params,
+                                            HttpMethod.POST,
+                                            new GraphRequest.Callback() {
+                                                public void onCompleted(GraphResponse response) {
+                                                    Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                                    GraphRequest request = new GraphRequest(
+                                                            AccessToken.getCurrentAccessToken(),
+                                                            "/me/feed",
+                                                            null,
+                                                            HttpMethod.GET,
+                                                            new GraphRequest.Callback() {
+                                                                public void onCompleted(GraphResponse response) {
+
+                                                                    // JSON GETS THE DATA
+                                                                    JSONObject jsonData = response.getJSONObject();
+
+                                                                    try {
+
+                                                                        JSONArray postsData = jsonData.getJSONArray("data");
+                                                                        if (postsData != null) {
+
+                                                                            for (int i = 0; i < postsData.length(); i++) {
+                                                                                JSONObject story = postsData.getJSONObject(i);
+
+                                                                                if (story.has("id")) {
+                                                                                    String timeMessage = story.getString("id");
+                                                                                    String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                                    Uri uri = Uri.parse(facebook);
+                                                                                    Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                                    startActivity(intentfb);
+                                                                                }
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    } catch (Exception e) {
+                                                                        Log.d("JSON", "error" + e.toString());
+                                                                    }
+
+                                                                }
+                                                            }
+                                                    );
+                                                    Bundle parameters = new Bundle();
+                                                    parameters.putString("fields", "id");
+                                                    parameters.putString("limit", "1");
+                                                    request.setParameters(parameters);
+                                                    request.executeAsync();
+                                                }
+                                            }
+                                    ).executeAsync();
+
+                                    editTextpost.setText("");
+
+
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            dialogButton3.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                                    builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                            .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.cancel();
+                                                }
+                                            });
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+
+                                }
+                            });
+
+                            dialog.show();
+
+
+                        } else {
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(AccountActivity.this);
+                            builder.setMessage(message + "\n\n" + checkwd + "\n\n" + checksc).setTitle("AlertDialog").setCancelable(false)
+                                    .setNegativeButton("Exits", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            dialogInterface.cancel();
+                                        }
+                                    });
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+
+                            Bundle params = new Bundle();
+                            params.putString("message", message);
+                            new GraphRequest(
+                                    AccessToken.getCurrentAccessToken(),
+                                    "/me/feed",
+                                    params,
+                                    HttpMethod.POST,
+                                    new GraphRequest.Callback() {
+                                        public void onCompleted(GraphResponse response) {
+                                            Toast.makeText(AccountActivity.this, "Post Status Success", Toast.LENGTH_LONG).show();
+                                            GraphRequest request = new GraphRequest(
+                                                    AccessToken.getCurrentAccessToken(),
+                                                    "/me/feed",
+                                                    null,
+                                                    HttpMethod.GET,
+                                                    new GraphRequest.Callback() {
+                                                        public void onCompleted(GraphResponse response) {
+
+                                                            // JSON GETS THE DATA
+                                                            JSONObject jsonData = response.getJSONObject();
+
+                                                            try {
+
+                                                                JSONArray postsData = jsonData.getJSONArray("data");
+                                                                if (postsData != null) {
+
+                                                                    for (int i = 0; i < postsData.length(); i++) {
+                                                                        JSONObject story = postsData.getJSONObject(i);
+
+                                                                        if (story.has("id")) {
+                                                                            String timeMessage = story.getString("id");
+                                                                            String facebook = "https://www.facebook.com/" + timeMessage;
+                                                                            Uri uri = Uri.parse(facebook);
+                                                                            Intent intentfb = new Intent(Intent.ACTION_VIEW, uri);
+                                                                            startActivity(intentfb);
+                                                                        }
+
+                                                                    }
+
+
+                                                                }
+
+                                                            } catch (Exception e) {
+                                                                Log.d("JSON", "error" + e.toString());
+                                                            }
+
+                                                        }
+                                                    }
+                                            );
+                                            Bundle parameters = new Bundle();
+                                            parameters.putString("fields", "id");
+                                            parameters.putString("limit", "1");
+                                            request.setParameters(parameters);
+                                            request.executeAsync();
+                                        }
+                                    }
+                            ).executeAsync();
+
+                        }
+
+
+                    }
+                }
+
+
+
+
+
+            }
+
+
+
+        ////check graph สรุปจำนวนโพสต์
+
+
+
+
+        databaseRealtime = new DatabaseRealtime(getApplicationContext());
+        databaseRealtime.getReadableDatabase();
+
+        Calendar check = Calendar.getInstance();
+        check.add(Calendar.DATE,0);
+
+
+
+
+        SimpleDateFormat realdatecurrent = new SimpleDateFormat("yyyy-MM-dd");
+
+
+        String datecurrent = realdatecurrent.format(check.getTime());
+
+
+
+        SimpleDateFormat df ;
+        SimpleDateFormat df2;
+        SimpleDateFormat df3 ;
+        SimpleDateFormat df4 ;
+        SimpleDateFormat df5 ;
+        SimpleDateFormat df6 ;
+        SimpleDateFormat df7 ;
+        SimpleDateFormat df8 ;
+
+        final String formattedDate ;
+        final String formattedDate2 ;
+        final String formattedDate3 ;
+        final String formattedDate4 ;
+        final String formattedDate5 ;
+        final String formattedDate6 ;
+        final String formattedDate7 ;
+        final String formattedDate8 ;
+
+
+        boolean Date1 ;
+        boolean Date2 ;
+        boolean Date3;
+        boolean Date4;
+        boolean Date5;
+        boolean Date6;
+        boolean Date7;
+        boolean Date8;
+
+
+
+
+        final ArrayList<HashMap<String, String>> datetime = databaseRealtime.getDaterealtime();
+
+        final String datecheck1 = datetime.get(0).get("Date");
+        final String datecheck2 = datetime.get(1).get("Date");
+        final String datecheck3 = datetime.get(2).get("Date");
+        final String datecheck4 = datetime.get(3).get("Date");
+        final String datecheck5 = datetime.get(4).get("Date");
+        final String datecheck6 = datetime.get(5).get("Date");
+        final String datecheck7 = datetime.get(6).get("Date");
+        final String datecheck8 = datetime.get(7).get("Date");
+
+        final String pattern = "([0-9-]{10})";
+
+        final Pattern regex = Pattern.compile(pattern);
+
+
+
+
+
+        if(!(datecurrent.contains(datecheck8))){
+
+            GraphRequest request = new GraphRequest(
+                    AccessToken.getCurrentAccessToken(),
+                    "/me/feed",
+                    null,
+                    HttpMethod.GET,
+                    new GraphRequest.Callback() {
+                        public void onCompleted(GraphResponse response) {
+
+                            // JSON GETS THE DATA
+                            JSONObject jsonData = response.getJSONObject();
+
+                            try {
+
+                                JSONArray postsData = jsonData.getJSONArray("data");
+                                if (postsData != null) {
+
+                                    int countgrappos = 0;
+                                    int countgrapnege = 0;
+                                    int countgraphneural = 0;
+                                    int countgraphnot = 0;
+
+                                    for (int i = 0; i < postsData.length(); i++) {
+
+                                        strword.clear();
+                                        emo.clear();
+                                        listemo.clear();
+                                        listforword.clear();
+                                        listforemo.clear();
+                                        testword.clear();
+                                        testshortcut.clear();
+
+                                        int countchexkemo = 0;
+                                        int count = 0;
+                                        int checkifemo = 0;
+                                        int checkifword = 0;
+
+                                        JSONObject story = postsData.getJSONObject(i);
+
+//
+                                        if(story.has("created_time")){
+                                            String timeMessage = story.getString("created_time");
+                                            //allPostsMessages.add(timeMessage);
+                                            Matcher m = regex.matcher(timeMessage);
+                                            if(m.find()){
+                                                //allPostsMessages.add(m.group(0));
+
+                                                if(m.group(0).contains(datecheck1) ){
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+                                                    }
+
+                                                }else if(m.group(0).contains(datecheck2)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck3)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+                                                    }
+
+                                                }else if(m.group(0).contains(datecheck4)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck5)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck6)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck7)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+                                                    }
+
+
+                                                }
+                                            }
+
+                                        }
+
+                                        if(checkifemo>0&&countchexkemo>0){
+                                            countgrappos++;
+
+                                        }else if(checkifemo>0&&countchexkemo==0){
+                                            countgraphneural++;
+
+                                        }else if(checkifemo>0&&countchexkemo<0){
+                                            countgrapnege++;
+                                        }else{
+                                            if(checkifword > 0&&count >0){
+                                                countgrappos++;
+                                            }else if(checkifword > 0&&count ==0){
+                                                countgraphneural++;
+                                            }else if(checkifword > 0&&count <0){
+                                                countgrapnege++;
+                                            }else{
+                                                countgraphnot++;
+                                            }
+                                        }
+
+
+                                    }
+
+
+
+
+
+
+                                    Toast.makeText(AccountActivity.this,"บวก"+String.valueOf(countgrappos)+"ลบ"+String.valueOf(countgrapnege),Toast.LENGTH_SHORT).show();
+
+
+                                }
+
+
+
+
+
+                            } catch (Exception e) {
+                                Log.d("JSON", "error" + e.toString());
+                            }
+
+                        }
+                    }
+            );
+            Bundle parameters = new Bundle();
+            parameters.putString("fields", "created_time,message");
+            request.setParameters(parameters);
+            request.executeAsync();
+
+        }else{
+
+
+
+            Calendar c = Calendar.getInstance();
+            Calendar c2 = Calendar.getInstance();
+            Calendar c3 = Calendar.getInstance();
+            Calendar c4 = Calendar.getInstance();
+            Calendar c5 = Calendar.getInstance();
+            Calendar c6 = Calendar.getInstance();
+            Calendar c7 = Calendar.getInstance();
+            Calendar c8 = Calendar.getInstance();
+
+            c.add(Calendar.DATE,0);
+            c2.add(Calendar.DATE,+1);
+            c3.add(Calendar.DATE,+2);
+            c4.add(Calendar.DATE,+3);
+            c5.add(Calendar.DATE,+4);
+            c6.add(Calendar.DATE,+5);
+            c7.add(Calendar.DATE,+6);
+            c8.add(Calendar.DATE,+7);
+
+
+            df = new SimpleDateFormat("yyyy-MM-dd");
+            df2 = new SimpleDateFormat("yyyy-MM-dd");
+            df3 = new SimpleDateFormat("yyyy-MM-dd");
+            df4 = new SimpleDateFormat("yyyy-MM-dd");
+            df5 = new SimpleDateFormat("yyyy-MM-dd");
+            df6 = new SimpleDateFormat("yyyy-MM-dd");
+            df7 = new SimpleDateFormat("yyyy-MM-dd");
+            df8 = new SimpleDateFormat("yyyy-MM-dd");
+
+            formattedDate = df.format(c.getTime());
+            formattedDate2 = df2.format(c2.getTime());
+            formattedDate3 = df3.format(c3.getTime());
+            formattedDate4 = df4.format(c4.getTime());
+            formattedDate5 = df5.format(c5.getTime());
+            formattedDate6 = df6.format(c6.getTime());
+            formattedDate7 = df7.format(c7.getTime());
+            formattedDate8 = df8.format(c8.getTime());
+
+            Date1 = databaseRealtime.updateData("1",formattedDate);
+            Date2 = databaseRealtime.updateData("2",formattedDate2);
+            Date3 = databaseRealtime.updateData("3",formattedDate3);
+            Date4 = databaseRealtime.updateData("4",formattedDate4);
+            Date5 = databaseRealtime.updateData("5",formattedDate5);
+            Date6 = databaseRealtime.updateData("6",formattedDate6);
+            Date7 = databaseRealtime.updateData("7",formattedDate7);
+            Date8 = databaseRealtime.updateData("8",formattedDate8);
+
+            final String datecheck11 = datetime.get(0).get("Date");
+            final String datecheck22 = datetime.get(1).get("Date");
+            final String datecheck33 = datetime.get(2).get("Date");
+            final String datecheck44 = datetime.get(3).get("Date");
+            final String datecheck55 = datetime.get(4).get("Date");
+            final String datecheck66 = datetime.get(5).get("Date");
+            final String datecheck77 = datetime.get(6).get("Date");
+            final String datecheck88 = datetime.get(7).get("Date");
+
+            GraphRequest request = new GraphRequest(
+                    AccessToken.getCurrentAccessToken(),
+                    "/me/feed",
+                    null,
+                    HttpMethod.GET,
+                    new GraphRequest.Callback() {
+                        public void onCompleted(GraphResponse response) {
+
+                            // JSON GETS THE DATA
+                            JSONObject jsonData = response.getJSONObject();
+
+                            try {
+
+                                JSONArray postsData = jsonData.getJSONArray("data");
+                                if (postsData != null) {
+
+                                    int countgrappos = 0;
+                                    int countgrapnege = 0;
+                                    int countgraphneural = 0;
+                                    int countgraphnot = 0;
+
+                                    for (int i = 0; i < postsData.length(); i++) {
+                                        strword.clear();
+                                        emo.clear();
+                                        listemo.clear();
+                                        listforword.clear();
+                                        listforemo.clear();
+                                        testword.clear();
+                                        testshortcut.clear();
+
+                                        int countchexkemo = 0;
+                                        int count = 0;
+                                        int checkifemo = 0;
+                                        int checkifword = 0;
+
+                                        JSONObject story = postsData.getJSONObject(i);
+
+                                        if(story.has("created_time")){
+                                            String timeMessage = story.getString("created_time");
+                                            //allPostsMessages.add(timeMessage);
+                                            Matcher m = regex.matcher(timeMessage);
+                                            if(m.find()){
+                                                //allPostsMessages.add(m.group(0));
+
+                                                if(m.group(0).contains(datecheck11) ){
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+
+                                                    }
+
+                                                }else if(m.group(0).contains(datecheck22)){
+
+                                                    if(story.has("message")) {
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck33)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+
+                                                    }
+
+                                                }else if(m.group(0).contains(datecheck44)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck55)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck66)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+                                                    }
+
+
+                                                }else if(m.group(0).contains(datecheck77)){
+
+                                                    if(story.has("message")) {
+
+                                                        String postMessage = story.getString("message");
+                                                        Matcher m22 = regex2.matcher(postMessage);
+                                                        Matcher m33 = regex3.matcher(postMessage);
+                                                        Matcher m44 = regex4.matcher(postMessage);
+
+                                                        while (m22.find()){
+                                                            listemo.add(m22.group(0));
+                                                        }
+
+                                                        while (m33.find()){
+                                                            listemo.add(m33.group(0));
+
+                                                        }
+
+                                                        while (m44.find()){
+                                                            listemo.add(m44.group(0));
+
+                                                        }
+
+                                                        //check word
+                                                        Locale thaiLocale = new Locale("th");
+
+
+                                                        BreakIterator boundary = BreakIterator.getWordInstance(thaiLocale);
+
+                                                        boundary.setText(postMessage);
+
+
+                                                        int start = boundary.first();
+                                                        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+
+                                                            strword.add(postMessage.substring(start, end));
+
+
+                                                        }
+
+                                                        for (String s : listemo) {
+                                                            for(int k=0;k<emoshortcut.size();k++){
+                                                                if(s.equals(emoshortcut.get(k).get("EmoticonShortcut"))){
+                                                                    String rank = emoshortcut.get(k).get("EmoticonRank");
+                                                                    int countrank = Integer.parseInt(rank);
+                                                                    countchexkemo = countchexkemo + countrank;
+                                                                    checkifemo++;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        for (int h = 0; h < strword.size(); h++) {
+                                                            String str = strword.get(h);
+
+
+                                                            // Toast.makeText(MainActivity.this,str,Toast.LENGTH_LONG).show();
+                                                            for (int j = 0; j < attitude.size(); j++) {
+                                                                if (str.equals(attitude.get(j).get("AttitudeWord"))) {
+
+                                                                    String rank = attitude.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+                                                            for (int j = 0; j < attitude2.size(); j++) {
+                                                                if (str.equals(attitude2.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude2.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+                                                            for (int j = 0; j < attitude3.size(); j++) {
+                                                                if (str.equals(attitude3.get(j).get("AttitudeWord"))) {
+                                                                    String rank = attitude3.get(j).get("AttitudeRank");
+                                                                    int countrank = Integer.parseInt(rank);
+
+
+                                                                    count = count + countrank;
+                                                                    checkifword++;
+
+
+                                                                }
+                                                            }
+
+
+
+
+
+                                                        }
+
+
+                                                    }
+
+
+                                                }
+                                            }
+                                            //Toast.makeText(TimelineActivity.this,timeMessage,Toast.LENGTH_SHORT).show();
+                                        }
+
+                                        if(checkifemo>0&&countchexkemo>0){
+                                            countgrappos++;
+
+                                        }else if(checkifemo>0&&countchexkemo==0){
+                                            countgraphneural++;
+
+                                        }else if(checkifemo>0&&countchexkemo<0){
+                                            countgrapnege++;
+                                        }else{
+                                            if(checkifword > 0&&count >0){
+                                                countgrappos++;
+                                            }else if(checkifword > 0&&count ==0){
+                                                countgraphneural++;
+                                            }else if(checkifword > 0&&count <0){
+                                                countgrapnege++;
+                                            }else{
+                                                countgraphnot++;
+                                            }
+                                        }
+
+
+
+                                    }
+
+
+
+
+
+                                    //Toast.makeText(TimelineActivity.this,allPostsMessages.size(),Toast.LENGTH_SHORT).show();
+
+//                                for(int i = 0;i<allPostsMessages.size();i++){
+//
+//                                }
+                                    Toast.makeText(AccountActivity.this,String.valueOf(countgrappos),Toast.LENGTH_SHORT).show();
+                                    SharedPreferences sp = getSharedPreferences("save1", Context.MODE_PRIVATE);
+                                    int save1 = sp.getInt("show1",countgrappos);
+                                    SharedPreferences sp2 = getSharedPreferences("save2", Context.MODE_PRIVATE);
+                                    int save2 = sp2.getInt("show2",countgrapnege);
+                                    SharedPreferences sp3 = getSharedPreferences("save3", Context.MODE_PRIVATE);
+                                    int save3 = sp3.getInt("show3",countgraphneural);
+                                    SharedPreferences sp4 = getSharedPreferences("save4", Context.MODE_PRIVATE);
+                                    int save4 = sp4.getInt("show4",countgraphnot);
+
+
+
+                                }
+
+
+
+
+
+                            } catch (Exception e) {
+                                Log.d("JSON", "error" + e.toString());
+                            }
+
+                        }
+                    }
+            );
+            Bundle parameters = new Bundle();
+            parameters.putString("fields", "created_time,message");
+            request.setParameters(parameters);
+            request.executeAsync();
+
+
+
+
+
+        }
+
+        ////end check graph สรุปจำนวนโพสต์
+
+
+
+
+
+
+
+
+
+    }
+
+
 
     @Override
     public void onBackPressed() {
@@ -111,6 +5294,11 @@ public class AccountActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            LoginManager.getInstance().logOut();
+            Intent intentlog = new Intent(AccountActivity.this, MainActivity.class);
+            startActivity(intentlog);
+            Toast.makeText(getApplicationContext(), "User logged out success", Toast.LENGTH_SHORT).show();
+
             return true;
         }
 
@@ -123,24 +5311,72 @@ public class AccountActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        final Intent intent = getIntent();
+        String jsondata = intent.getStringExtra("userProfile");
+        JSONObject reponse;
 
 
 
         if (id == R.id.profile) {
 
+            Intent myprofile = new Intent(AccountActivity.this,ProfileActivity.class);
+            myprofile.putExtra("userProfile",jsondata);
+            startActivity(myprofile);
+
+
         }
         else if (id == R.id.timeline) {
-
+            Intent myTimeline = new Intent(AccountActivity.this,TimelineActivity.class);
+            startActivity(myTimeline);
         } else if (id == R.id.graph) {
+
+            Intent myGraph = new Intent(AccountActivity.this,SummaryActivity.class);
+            startActivity(myGraph);
+
 
         } else if (id == R.id.setting) {
 
-        } else if (id == R.id.about) {
+                Intent intentsetting = new Intent(AccountActivity.this,SettingActivity.class);
+                intentsetting.putExtra("userProfile",jsondata);
+                startActivity(intentsetting);
 
+
+
+
+        }
+        else if (id == R.id.facebook){
+            try {
+                reponse = new JSONObject(jsondata);
+                String idfb = reponse.get("id").toString();
+                String facebook = "https://www.facebook.com/"+idfb;
+                Uri uri = Uri.parse(facebook);
+                Intent intentfb = new Intent(Intent.ACTION_VIEW,uri);
+                startActivity(intentfb);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    protected void onResume() {
+        super.onResume();
+        // Logs 'install' and 'app activate' App Events.
+        AppEventsLogger.activateApp(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Logs 'app deactivate' App Event.
+        AppEventsLogger.deactivateApp(this);
+    }
+
+
+
+
+
 }

@@ -10,6 +10,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                         getUserDetail(loginResult);
+                        Toast.makeText(MainActivity.this,"User logged in success",Toast.LENGTH_SHORT).show();
 
                     }
 

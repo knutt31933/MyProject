@@ -23,10 +23,11 @@
             android:id="@+id/setting"
             android:icon="@drawable/ic_setting"
             android:title="Setting" />
+
         <item
-            android:id="@+id/about"
-            android:icon="@drawable/ic_about"
-            android:title="About Us" />
+            android:id="@+id/facebook"
+            android:icon="@drawable/ic_fb"
+            android:title="Go to Facebook" />
     </group>
 
 </menu>
