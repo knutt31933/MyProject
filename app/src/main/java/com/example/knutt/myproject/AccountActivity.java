@@ -1129,13 +1129,15 @@ public class AccountActivity extends AppCompatActivity
                                             counttarget++;
                                         }
                                     }
-                                    if((str2.contains("ๆ"))&&(counttarget != 1)){
+                                    if(counttarget != 1){
                                         str3 = str+"ๆ"+str2;
 
+                                    }else{
+                                        str3 = str+"ๆ";
                                     }
 
                                 }
-                                str3 = str+"ๆ";
+
                             }
 
                         }
@@ -1172,12 +1174,14 @@ public class AccountActivity extends AppCompatActivity
                                             counttarget++;
                                         }
                                     }
-                                    if((str2.contains("ๆ"))&&(counttarget != 1)){
+                                    if((counttarget != 1)){
                                         str3 = str+"ๆ"+str2;
 
+                                    }else{
+                                        str3 = str+"ๆ";
                                     }
                                 }
-                                str3 = str+"ๆ";
+
                             }
                         }
 
@@ -1214,12 +1218,14 @@ public class AccountActivity extends AppCompatActivity
                                         }
                                     }
 
-                                    if((str2.contains("ๆ"))&&(counttarget != 1)){
+                                    if(counttarget != 1){
                                         str3 = str+"ๆ"+str2;
 
+                                    }else{
+                                        str3 = str+"ๆ";
                                     }
                                 }
-                                str3 = str+"ๆ";
+
 
                             }
                         }
@@ -1260,7 +1266,7 @@ public class AccountActivity extends AppCompatActivity
                                     mappingEmo.put(emotionword,countmapping);
 
                                 }
-                                emo.add(emotionword);
+
                             }
 
 
@@ -1271,8 +1277,26 @@ public class AccountActivity extends AppCompatActivity
                             String frequen ="([ๆ]{1})";
                             Pattern regexfre = Pattern.compile(frequen);
                             Matcher mfre = regexfre.matcher(str3);
+                            int countnumber = 0;
                             while (mfre.find()){
                                 count = count + countrank;
+                                countnumber++;
+                            }
+
+                            for(int c = 0;c <countnumber;c++){
+                                while (m5.find()){
+                                    int attemo = Integer.parseInt(m5.group(0));
+                                    String emotionword = emotion.get(attemo).get("EmotionWord");
+                                    if(mappingEmo.get(emotionword) == null){
+                                        mappingEmo.put(emotionword,1);
+                                    }else{
+                                        int countmapping = mappingEmo.get(emotionword);
+                                        countmapping++;
+                                        mappingEmo.put(emotionword,countmapping);
+
+                                    }
+
+                                }
                             }
 
 
@@ -1298,7 +1322,7 @@ public class AccountActivity extends AppCompatActivity
                                     mappingEmo.put(emotionword,countmapping);
 
                                 }
-                                emo.add(emotionword);
+
                             }
 
 
@@ -1309,11 +1333,29 @@ public class AccountActivity extends AppCompatActivity
                             String frequen ="([ๆ]{1})";
                             Pattern regexfre = Pattern.compile(frequen);
                             Matcher mfre = regexfre.matcher(str3);
+                            int countnumber =0;
                             while (mfre.find()){
                                 count = count + countrank;
+                                countnumber++;
                             }
 
-                            //Toast.makeText(AccountActivity.this,attitude2.get(j).get("AttitudeWord"),Toast.LENGTH_LONG).show();
+                            for(int c = 0;c <countnumber;c++){
+                                while (m5.find()){
+                                    int attemo = Integer.parseInt(m5.group(0));
+                                    String emotionword = emotion.get(attemo).get("EmotionWord");
+                                    if(mappingEmo.get(emotionword) == null){
+                                        mappingEmo.put(emotionword,1);
+                                    }else{
+                                        int countmapping = mappingEmo.get(emotionword);
+                                        countmapping++;
+                                        mappingEmo.put(emotionword,countmapping);
+
+                                    }
+
+                                }
+                            }
+
+
 
                         }
                     }
@@ -1336,7 +1378,7 @@ public class AccountActivity extends AppCompatActivity
                                     mappingEmo.put(emotionword,countmapping);
 
                                 }
-                                emo.add(emotionword);
+
                             }
 
 
@@ -1349,8 +1391,25 @@ public class AccountActivity extends AppCompatActivity
                             String frequen ="([ๆ]{1})";
                             Pattern regexfre = Pattern.compile(frequen);
                             Matcher mfre = regexfre.matcher(str3);
+                            int countnumber = 0;
                             while (mfre.find()){
                                 count = count + countrank;
+                                countnumber++;
+                            }
+                            for(int c = 0;c <countnumber;c++){
+                                while (m5.find()){
+                                    int attemo = Integer.parseInt(m5.group(0));
+                                    String emotionword = emotion.get(attemo).get("EmotionWord");
+                                    if(mappingEmo.get(emotionword) == null){
+                                        mappingEmo.put(emotionword,1);
+                                    }else{
+                                        int countmapping = mappingEmo.get(emotionword);
+                                        countmapping++;
+                                        mappingEmo.put(emotionword,countmapping);
+
+                                    }
+
+                                }
                             }
 
 
