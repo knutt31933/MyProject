@@ -127,7 +127,7 @@ databaseRealtime.getReadableDatabase();
 
             GraphRequest request = new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
-                    "/me/feed",
+                    "/me/feed?limit=500",
                     null,
                     HttpMethod.GET,
                     new GraphRequest.Callback() {
@@ -332,7 +332,7 @@ databaseRealtime.getReadableDatabase();
 
             GraphRequest request = new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
-                    "/me/feed",
+                    "/me/feed?limit=500",
                     null,
                     HttpMethod.GET,
                     new GraphRequest.Callback() {

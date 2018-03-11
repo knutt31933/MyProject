@@ -490,7 +490,7 @@ public class AccountActivity extends AppCompatActivity
 
                             EditTextCursor = editTextpost.getSelectionStart();
 
-                            editTextpost.getText().insert(EditTextCursor, ":/");
+                            editTextpost.getText().insert(EditTextCursor, ":-/");
 
                             EditTextCursor = editTextpost.getSelectionStart();
 
