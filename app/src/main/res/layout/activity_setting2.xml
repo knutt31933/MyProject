@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bgfacebook"
@@ -10,8 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
-    tools:context="com.example.knutt.myproject.SettingActivity">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/textView"
@@ -20,38 +17,43 @@
         android:text="ตั้งค่าไทม์ไลน์ (Timeline)"
         android:textStyle="bold"
         android:textColor="#FFFF"
-        android:textSize="15dp"
-        android:layout_weight="0.11" />
+        android:textSize="17dp"
+        android:layout_weight="0.11"
+        />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.05"
+        android:text="คุณต้องการเห็นโพสต์ที่แสดงทัศนคติใดแสดงบนไทม์ไลน์บ้าง?"
         android:textColor="#000000"
-        android:text="คุณต้องการเห็นโพสต์ใดแสดงบนไทม์ไลน์บ้าง?" />
+        android:textSize="16dp"/>
 
     <CheckBox
         android:id="@+id/checkBox"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:onClick="onCheckboxClicked"
-        android:text="โพสต์ของสถานะที่แสดงทัศนคติทางบวก" />
+        android:layout_height="wrap_content"
+        android:text="ทัศนคติทางบวก"
+        android:textSize="16dp"/>
 
     <CheckBox
         android:id="@+id/checkBox2"
         android:layout_width="match_parent"
         android:layout_height="31dp"
-        android:text="โพสต์ของสถานะที่แสดงทัศนคติเป็นกลาง"
         android:onClick="onCheckboxClicked"
-        android:layout_weight="0.03" />
+        android:layout_weight="0.03"
+        android:text="ทัศนคติเป็นกลาง"
+        android:textSize="16dp"/>
 
     <CheckBox
         android:id="@+id/checkBox3"
         android:layout_width="match_parent"
-        android:layout_height="28dp"
         android:onClick="onCheckboxClicked"
-        android:text="โพสต์ของสถานะที่แสดงทัศนคติเป็นลบ" />
+        android:layout_height="28dp"
+        android:text="ทัศนคติเป็นลบ"
+        android:textSize="16dp"/>
 
     <TextView
         android:id="@+id/textView3"
@@ -66,7 +68,7 @@
         android:layout_weight="0.07"
         android:text="ตั้งค่าการแจ้งเตือน (Notification)"
         android:textColor="#FFFF"
-        android:textSize="15dp"
+        android:textSize="17dp"
         android:textStyle="bold" />
 
     <CheckBox
@@ -74,15 +76,17 @@
         android:layout_width="283dp"
         android:layout_height="wrap_content"
         android:onClick="onCheckboxClicked"
-        android:text="รับการแจ้งเตือนเมื่อคุณโพสต์สถานะที่แสดงทัศนคติทางลบบ่อยครั้ง"
-        android:layout_weight="0.08" />
+        android:layout_weight="0.08"
+        android:text="เมื่อโพสต์สถานะที่แสดงทัศนคติทางลบบ่อยครั้ง"
+        android:textSize="16dp"/>
 
     <CheckBox
         android:id="@+id/checkBox5"
         android:layout_width="336dp"
-        android:layout_height="wrap_content"
+        android:layout_height="43dp"
         android:onClick="onCheckboxClicked"
-        android:text="รับการแจ้งเตือนเมื่อเพื่อนสนิท (Close Friends) โพสต์สถานะ" />
+        android:text="เมื่อเพื่อนสนิท (Close Friends) โพสต์สถานะ"
+        android:textSize="16dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -96,7 +100,7 @@
         android:layout_weight="0.07"
         android:text="ตั้งค่าการโพสต์ (Post via Application)"
         android:textColor="#FFFF"
-        android:textSize="15dp"
+        android:textSize="17dp"
         android:textStyle="bold" />
 
     <CheckBox
@@ -104,15 +108,64 @@
         android:layout_width="336dp"
         android:layout_height="wrap_content"
         android:onClick="onCheckboxClicked"
-        android:text="ถ้าสถานะที่โพสต์แสดงทัศนคติเชิงบวก จะโพสต์ไปยังไทม์ไลน์ทันที" />
+        android:text="โพสต์ไปยังไทม์ไลน์ทันทีเมื่อโพสต์สถานะที่แสดงทัศนคติทางบวก"
+        android:textSize="16dp"/>
 
-    <Button
-        android:id="@+id/backbtnsetting"
-        android:layout_width="wrap_content"
+    <RadioGroup
+        android:id="@+id/radio_g"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/cmd_buttonback"
-        android:text="BACK"
-        android:textColor="#ffffff" />
+        android:layout_weight="0.11">
+
+        <RadioButton
+            android:id="@+id/day1"
+            android:layout_width="wrap_content"
+            android:onClick="onCheckboxClicked2"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="1 วัน" />
+
+        <RadioButton
+            android:id="@+id/day2"
+            android:layout_width="wrap_content"
+            android:onClick="onCheckboxClicked2"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="2 วัน" />
+
+        <RadioButton
+            android:id="@+id/day4"
+            android:layout_width="wrap_content"
+            android:onClick="onCheckboxClicked2"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="4 วัน" />
+
+        <RadioButton
+            android:id="@+id/day3"
+            android:layout_width="wrap_content"
+            android:onClick="onCheckboxClicked2"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="3 วัน" />
+
+        <RadioButton
+            android:id="@+id/day5"
+            android:layout_width="wrap_content"
+            android:onClick="onCheckboxClicked2"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="5 วัน" />
+
+        <RadioButton
+            android:id="@+id/day6"
+            android:layout_width="wrap_content"
+            android:onClick="onCheckboxClicked2"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="6 วัน" />
+
+    </RadioGroup>
+
 
 </LinearLayout>

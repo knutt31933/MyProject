@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.support.v7.app.AlertDialog;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
@@ -90,6 +91,7 @@ public class AccountActivity extends AppCompatActivity
 
     /////check
     private DatabaseRealtime databaseRealtime;
+    private databaserealtimeSetting1 databaserealtimeSetting1;
     private ArrayList<String> arrListWordcheck = new ArrayList<>();
     private ArrayList<String> arrListEmocheck = new ArrayList<>();
 
@@ -140,16 +142,70 @@ public class AccountActivity extends AppCompatActivity
         db2.getWritableDatabase();
         db3=new Database3(getApplicationContext());
         db3.getWritableDatabase();
+
         databaseRealtime = new DatabaseRealtime(getApplicationContext());
         databaseRealtime.getWritableDatabase();
 
+        databaserealtimeSetting1 = new databaserealtimeSetting1(getApplicationContext());
+        databaserealtimeSetting1.getWritableDatabase();
 
-        final ArrayList<HashMap<String, String>> datetimeforcheck = databaseRealtime.getDaterealtime();
+        SharedPreferences spradio = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+        int checkboxRadio = spradio.getInt("checkedRadio",0);
+
+        final ArrayList<HashMap<String, String>> datetimeforchecksetting1 = databaserealtimeSetting1.getDaterealtimesetting1();
+
+        ///check time current
         Calendar checkfirst = Calendar.getInstance();
         checkfirst.add(Calendar.DATE,0);
         SimpleDateFormat cfirst = new SimpleDateFormat("yyyy-MM-dd");
         String dateforfirst = cfirst.format(checkfirst.getTime());
         int forcheck = 0;
+        ///
+
+        if(checkboxRadio == 1){
+            for(int i = 0;i<datetimeforchecksetting1.size();i++){
+                String key = datetimeforchecksetting1.get(i).get("Date");
+                if(key.contains(dateforfirst)){
+                    forcheck++;
+                }
+
+            }
+            String key = datetimeforchecksetting1.get(1).get("Date");
+            if(forcheck==0 || dateforfirst.contains(key)){
+
+                Calendar c = Calendar.getInstance();
+                Calendar c2 = Calendar.getInstance();
+
+
+                c.add(Calendar.DATE,0);
+                c2.add(Calendar.DATE,+1);
+
+
+
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");
+
+
+                String formattedDate = df.format(c.getTime());
+                String formattedDate2 = df2.format(c2.getTime());
+
+
+                boolean Date1 = databaserealtimeSetting1.updateDataSetting1("1",formattedDate);
+                boolean Date2 = databaserealtimeSetting1.updateDataSetting1("2",formattedDate2);
+
+
+                final String datecheck11 = datetimeforchecksetting1.get(0).get("Date");
+                final String datecheck22 = datetimeforchecksetting1.get(1).get("Date");
+
+
+            }
+        }
+
+
+
+
+        final ArrayList<HashMap<String, String>> datetimeforcheck = databaseRealtime.getDaterealtime();
+
         for(int i = 0;i<datetimeforcheck.size();i++){
             String key = datetimeforcheck.get(i).get("Date");
             if(key.contains(dateforfirst)){
@@ -1221,8 +1277,8 @@ public class AccountActivity extends AppCompatActivity
                                     if(counttarget != 1){
                                         str3 = str+"ๆ"+str2;
 
-                                    }else{
-                                        str3 = str+"ๆ";
+                                    }else {
+                                        str3 = str + "ๆ";
                                     }
                                 }
 
@@ -1299,6 +1355,11 @@ public class AccountActivity extends AppCompatActivity
                                 }
                             }
 
+                            if(str.equals("ไม่") && !str2.contains("ๆ")){
+                                i++;
+                            }
+
+
 
                         }
                     }
@@ -1353,6 +1414,9 @@ public class AccountActivity extends AppCompatActivity
                                     }
 
                                 }
+                            }
+                            if(str.equals("ไม่") && !str2.contains("ๆ")){
+                                i++;
                             }
 
 
@@ -1410,6 +1474,10 @@ public class AccountActivity extends AppCompatActivity
                                     }
 
                                 }
+                            }
+
+                            if(str.equals("ไม่") && !str2.contains("ๆ")){
+                                i++;
                             }
 
 

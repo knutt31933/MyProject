@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import java.util.HashSet;
@@ -23,6 +25,9 @@ public class SettingActivity extends AppCompatActivity {
     private CheckBox checkBox5;
     private CheckBox checkBox6;
     private HashSet<String> map = new HashSet<>();
+    int countcheck = 0;
+    private RadioGroup radioGroup;
+    private RadioButton day1,day2,day3,day4,day5,day6;
 
 
 
@@ -32,7 +37,7 @@ public class SettingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting2);
 
-        backbtnsetting = (Button)findViewById(R.id.backbtnsetting);
+
         checkBox = (CheckBox) findViewById(R.id.checkBox);
         checkBox2 = (CheckBox) findViewById(R.id.checkBox2);
         checkBox3 = (CheckBox) findViewById(R.id.checkBox3);
@@ -40,16 +45,16 @@ public class SettingActivity extends AppCompatActivity {
         checkBox5 = (CheckBox) findViewById(R.id.checkBox5);
         checkBox6 = (CheckBox) findViewById(R.id.checkBox6);
 
+        day1 = (RadioButton)findViewById(R.id.day1);
+        day2 = (RadioButton)findViewById(R.id.day2);
+        day3 = (RadioButton)findViewById(R.id.day3);
+        day4 = (RadioButton)findViewById(R.id.day4);
+        day5 = (RadioButton)findViewById(R.id.day5);
+        day6 = (RadioButton)findViewById(R.id.day6);
+
         final Intent intent = getIntent();
         final String jsondata = intent.getStringExtra("userProfile");
-        backbtnsetting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),AccountActivity.class);
-                intent.putExtra("userProfile",jsondata);
-                startActivity(intent);
-            }
-        });
+
 
 
         SharedPreferences sp = getSharedPreferences("App save", Context.MODE_PRIVATE);
@@ -64,6 +69,9 @@ public class SettingActivity extends AppCompatActivity {
         int checkboxstate5 = sp5.getInt("checked5",1);
         SharedPreferences sp6 = getSharedPreferences("App save6", Context.MODE_PRIVATE);
         int checkboxstate6 = sp6.getInt("checked6",1);
+
+
+
 
         if (checkboxstate == 1) {
             checkBox.setChecked(true);
@@ -97,6 +105,76 @@ public class SettingActivity extends AppCompatActivity {
             checkBox6.setChecked(false);
         }
 
+        SharedPreferences spradio = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+        int checkboxRadio = spradio.getInt("checkedRadio",0);
+
+        if(checkboxRadio == 1){
+            day1.setChecked(true);
+
+        }else if(checkboxRadio == 2){
+            day2.setChecked(true);
+        }else if(checkboxRadio == 3){
+            day3.setChecked(true);
+        }else if(checkboxRadio == 4){
+            day4.setChecked(true);
+        }else if(checkboxRadio == 5){
+            day5.setChecked(true);
+        }else if(checkboxRadio == 6){
+            day6.setChecked(true);
+        }
+
+//        radioGroup = (RadioGroup) findViewById(R.id.radio_g);
+//        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+//                if(i == R.id.day1){
+//                    Toast.makeText(SettingActivity.this,"day1",Toast.LENGTH_SHORT).show();
+//                    SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPref.edit();
+//                    editor.putInt("checkedRadio", 1);
+//                    editor.commit();
+//
+//                }else if(i == R.id.day2){
+//                    Toast.makeText(SettingActivity.this,"day2",Toast.LENGTH_SHORT).show();
+//                    SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPref.edit();
+//                    editor.putInt("checkedRadio", 2);
+//                    editor.commit();
+//                }else if(i == R.id.day3){
+//                    Toast.makeText(SettingActivity.this,"day3",Toast.LENGTH_SHORT).show();
+//                    SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPref.edit();
+//                    editor.putInt("checkedRadio", 3);
+//                    editor.commit();
+//                }else if(i == R.id.day4){
+//                    Toast.makeText(SettingActivity.this,"day4",Toast.LENGTH_SHORT).show();
+//                    SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPref.edit();
+//                    editor.putInt("checkedRadio", 4);
+//                    editor.commit();
+//                }else if(i == R.id.day5){
+//                    Toast.makeText(SettingActivity.this,"day5",Toast.LENGTH_SHORT).show();
+//                    SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPref.edit();
+//                    editor.putInt("checkedRadio", 5);
+//                    editor.commit();
+//                }else if(i == R.id.day6){
+//                    Toast.makeText(SettingActivity.this,"day6",Toast.LENGTH_SHORT).show();
+//                    SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = sharedPref.edit();
+//                    editor.putInt("checkedRadio", 6);
+//                    editor.commit();
+//                }
+//            }
+//        });
+
+
+
+
+
+
+
+
 
 
 
@@ -105,9 +183,15 @@ public class SettingActivity extends AppCompatActivity {
     }
 
 
+
+
+
+
+
     public void onCheckboxClicked(View view) {
         // Is the view now checked?
       boolean checked = ((CheckBox) view).isChecked();
+
 
         if (view.getId() == R.id.checkBox) {
             if (checked) {
@@ -204,6 +288,72 @@ public class SettingActivity extends AppCompatActivity {
             }
         }
 
+
+
+
+
+
+
+
+
+    }
+    public void onCheckboxClicked2(View view){
+        boolean checked2 = ((RadioButton) view).isChecked();
+        if(view.getId() == R.id.day1){
+            if(checked2){
+                Toast.makeText(SettingActivity.this,"day1",Toast.LENGTH_SHORT).show();
+                SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("checkedRadio", 1);
+                editor.commit();
+            }
+
+        }else if(view.getId() == R.id.day2){
+            if(checked2){
+                Toast.makeText(SettingActivity.this,"day2",Toast.LENGTH_SHORT).show();
+                SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("checkedRadio", 2);
+                editor.commit();
+            }
+
+        }else if(view.getId() == R.id.day3){
+            if(checked2){
+                Toast.makeText(SettingActivity.this,"day3",Toast.LENGTH_SHORT).show();
+                SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("checkedRadio", 3);
+                editor.commit();
+            }
+
+        }else if(view.getId() == R.id.day4){
+            if(checked2){
+                Toast.makeText(SettingActivity.this,"day4",Toast.LENGTH_SHORT).show();
+                SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("checkedRadio", 4);
+                editor.commit();
+            }
+
+        }else if(view.getId() == R.id.day5){
+            if(checked2){
+                Toast.makeText(SettingActivity.this,"day5",Toast.LENGTH_SHORT).show();
+                SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("checkedRadio", 5);
+                editor.commit();
+            }
+
+        }else if(view.getId() == R.id.day6){
+            if(checked2){
+                Toast.makeText(SettingActivity.this,"day6",Toast.LENGTH_SHORT).show();
+                SharedPreferences sharedPref = getSharedPreferences("App save radio", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("checkedRadio", 6);
+                editor.commit();
+            }
+
+        }
     }
 
 
