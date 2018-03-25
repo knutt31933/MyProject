@@ -58,17 +58,17 @@ public class SettingActivity extends AppCompatActivity {
 
 
         SharedPreferences sp = getSharedPreferences("App save", Context.MODE_PRIVATE);
-        int checkboxstate = sp.getInt("checked",1);
+        int checkboxstate = sp.getInt("checked",0);
         SharedPreferences sp2 = getSharedPreferences("App save2", Context.MODE_PRIVATE);
-        int checkboxstate2 = sp2.getInt("checked2",1);
+        int checkboxstate2 = sp2.getInt("checked2",0);
         SharedPreferences sp3 = getSharedPreferences("App save3", Context.MODE_PRIVATE);
-        int checkboxstate3 = sp3.getInt("checked3",1);
+        int checkboxstate3 = sp3.getInt("checked3",0);
         SharedPreferences sp4 = getSharedPreferences("App save4", Context.MODE_PRIVATE);
-        int checkboxstate4 = sp4.getInt("checked4",1);
+        int checkboxstate4 = sp4.getInt("checked4",0);
         SharedPreferences sp5 = getSharedPreferences("App save5", Context.MODE_PRIVATE);
-        int checkboxstate5 = sp5.getInt("checked5",1);
+        int checkboxstate5 = sp5.getInt("checked5",0);
         SharedPreferences sp6 = getSharedPreferences("App save6", Context.MODE_PRIVATE);
-        int checkboxstate6 = sp6.getInt("checked6",1);
+        int checkboxstate6 = sp6.getInt("checked6",0);
 
 
 
